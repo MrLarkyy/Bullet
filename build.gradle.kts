@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
+    application
 }
 
 group = "com.aznos"
@@ -10,12 +11,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+
 }
 
-tasks.test {
-    useJUnitPlatform()
+application {
+    mainClass = "com.aznos.MainKt"
 }
+
 kotlin {
     jvmToolchain(21)
 }
