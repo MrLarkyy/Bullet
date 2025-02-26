@@ -4,5 +4,6 @@ package com.aznos
  * Application entrypoint
  */
 fun main() {
-    println("Hello World!")
+    val bullet = Bullet()
+    val server = bullet.createServer("0.0.0.0")
 }
