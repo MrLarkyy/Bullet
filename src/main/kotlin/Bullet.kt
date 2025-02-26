@@ -2,11 +2,13 @@ package com.aznos
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.util.concurrent.Executors
 
 /**
  * This is where the core of the bullet server logic will be housed
  */
 class Bullet : AutoCloseable {
+    private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
 
     /**
@@ -24,6 +26,11 @@ class Bullet : AutoCloseable {
         while(!isClosed()) {
             val client = server?.accept()
             println("${client?.inetAddress} connected")
+
+            pool.submit {
+                val session = client?.let { ClientSession(it, this) }
+                session?.handle()
+            }
         }
     }
 
