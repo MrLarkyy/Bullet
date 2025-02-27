@@ -1,6 +1,5 @@
 package com.aznos.packets.status.out
 
-import com.aznos.datatypes.StringType.writeString
 import com.aznos.packets.Packet
 
 /**

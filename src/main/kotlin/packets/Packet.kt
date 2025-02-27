@@ -12,9 +12,9 @@ import java.io.DataOutputStream
  * @param data The raw packet data
  */
 open class Packet(
-    val data: ByteArray
+    private val data: ByteArray
 ) {
-    val buffer = ByteArrayOutputStream()
+    private val buffer = ByteArrayOutputStream()
     val wrapper = DataOutputStream(buffer)
 
     /**
@@ -45,7 +45,7 @@ open class Packet(
         val raw = buffer.toByteArray()
         val buffer = ByteArrayOutputStream()
 
-        DataOutputStream(buffer).writeVarInt(raw.size)
+        buffer.writeVarInt(raw.size)
         buffer.write(raw)
 
         return buffer.toByteArray()

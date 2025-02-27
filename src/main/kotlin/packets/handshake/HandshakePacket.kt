@@ -15,8 +15,8 @@ import java.io.DataInputStream
  */
 class HandshakePacket(data: ByteArray) : Packet(data) {
     var protocol: Int? = null
-    var host: String? = null
-    var port: Short? = null
+    private var host: String? = null
+    private var port: Short? = null
     var state: Int? = null
 
     init {

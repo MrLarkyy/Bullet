@@ -7,7 +7,6 @@ import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
@@ -35,9 +34,9 @@ class PacketHandler(
     @PacketReceiver
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
         val response = ServerStatusResponse(
-            ServerStatusResponse.Version(Bullet.version, Bullet.protocol),
-            ServerStatusResponse.Players(Bullet.maxPlayers, 0),
-            Bullet.description,
+            ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
+            ServerStatusResponse.Players(Bullet.MAX_PLAYERS, 0),
+            Bullet.DESCRIPTION,
             false
         )
 
