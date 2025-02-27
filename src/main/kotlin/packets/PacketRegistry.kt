@@ -1,28 +1,47 @@
 package com.aznos.packets
 
 import com.aznos.GameState
+import com.aznos.packets.status.`in`.ClientStatusPingPacket
+import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import packets.handshake.HandshakePacket
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The packet registry contains all packet references by their ID
+ * Maintains a registry of packet classes mapped by the game state and packet ID
  */
 object PacketRegistry {
     private val packets: MutableMap<GameState, MutableMap<Int, Class<out Packet>>> = ConcurrentHashMap()
 
     init {
         //HANDSHAKE
-        val handshakePackets = ConcurrentHashMap<Int, Class<out Packet>>()
-        handshakePackets[0x00] = HandshakePacket::class.java
+        val handshakePackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
+            this[0x00] = HandshakePacket::class.java
+        }
+
         packets[GameState.HANDSHAKE] = handshakePackets
 
         //STATUS
-        packets[GameState.STATUS] = ConcurrentHashMap()
+        val statusPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
+            this[0x00] = ClientStatusRequestPacket::class.java
+            this[0x01] = ClientStatusPingPacket::class.java
+        }
+
+        packets[GameState.STATUS] = statusPackets
+
         //LOGIN
-        packets[GameState.LOGIN] = ConcurrentHashMap()
+        val loginPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
+
+        }
+
+        packets[GameState.LOGIN] = loginPackets
+
         //PLAY
-        packets[GameState.PLAY] = ConcurrentHashMap()
+        val playPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
+
+        }
+
+        packets[GameState.PLAY] = playPackets
     }
 
     /**

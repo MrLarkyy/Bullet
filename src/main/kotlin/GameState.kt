@@ -1,7 +1,7 @@
 package com.aznos
 
 /**
- * Current state of the game
+ * Represents the current state of the game connection
  */
 enum class GameState {
     HANDSHAKE,

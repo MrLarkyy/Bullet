@@ -34,8 +34,8 @@ object VarInt {
             result = result or (value shl (7 * numRead))
 
             numRead++
-            if(numRead > 5) throw RuntimeException("VarInt too big")
-        } while((read.toInt() and 0b10000000) != 0)
+            if (numRead > 5) throw RuntimeException("VarInt too big")
+        } while ((read.toInt() and 0b10000000) != 0)
 
         return result
     }
@@ -53,11 +53,29 @@ object VarInt {
             var temp = (tempVal and 0b01111111).toByte()
             tempVal = tempVal ushr 7
 
-            if(tempVal != 0) {
+            if (tempVal != 0) {
                 temp = (temp.toInt() or 0b10000000).toByte()
             }
 
             write(temp.toInt())
-        } while(tempVal != 0)
+        } while (tempVal != 0)
+    }
+
+    /**
+     * Returns the size of a var int
+     *
+     * @param value The var int
+     * @return the size
+     */
+    fun getVarIntSize(value: Int): Int {
+        var size = 0
+        var tempValue = value
+
+        do {
+            size++
+            tempValue = tempValue ushr 7
+        } while (tempValue != 0)
+
+        return size
     }
 }

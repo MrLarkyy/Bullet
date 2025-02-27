@@ -7,7 +7,12 @@ import java.util.concurrent.Executors
 /**
  * This is where the core of the bullet server logic will be housed
  */
-class Bullet : AutoCloseable {
+object Bullet : AutoCloseable {
+    val protocol: Int = 769; // Protocol version 769 = Minecraft version 1.21.4
+    val version: String = "1.21.4"
+    val maxPlayers: Int = 20;
+    val description: String = "Runs as fast as a bullet"
+
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
 
@@ -18,8 +23,9 @@ class Bullet : AutoCloseable {
      * @param port - The port the server will run on, this defaults at 25565
      */
     fun createServer(host: String, port: Int = 25565) {
-        server = ServerSocket()
-        server?.bind(InetSocketAddress(host, port))
+        server = ServerSocket().apply {
+            bind(InetSocketAddress(host, port))
+        }
 
         println("Bullet server started at $host:$port")
 
@@ -28,8 +34,9 @@ class Bullet : AutoCloseable {
             println("${client?.inetAddress} connected")
 
             pool.submit {
-                val session = client?.let { ClientSession(it, this) }
-                session?.handle()
+                client?.let {
+                    ClientSession(it).handle()
+                }
             }
         }
     }
@@ -37,8 +44,7 @@ class Bullet : AutoCloseable {
     /**
      * Returns if the server instance is either closed or it is not bound
      *
-     * @return boolean
-     * @see server
+     * @return True if the server is closed
      */
     private fun isClosed() : Boolean {
         return server?.let {
@@ -48,8 +54,6 @@ class Bullet : AutoCloseable {
 
     /**
      * Closes the connection to the server
-     *
-     * @see server
      */
     override fun close() {
         server?.close()

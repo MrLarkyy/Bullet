@@ -3,6 +3,7 @@ package com.aznos.datatypes
 import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.datatypes.VarInt.writeVarInt
 import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
@@ -40,7 +41,7 @@ object StringType {
      * @throws IOException If an I/O error occurs while reading the input stream
      */
     @Throws(IOException::class)
-    fun OutputStream.writeString(value: String) {
+    fun DataOutputStream.writeString(value: String) {
         val data = value.toByteArray(StandardCharsets.UTF_8)
         writeVarInt(data.size)
         write(data)
