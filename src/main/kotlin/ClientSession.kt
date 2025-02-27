@@ -1,5 +1,8 @@
 package com.aznos
 
+import com.aznos.datatypes.VarInt
+import com.aznos.datatypes.VarInt.readVarInt
+import java.io.DataInputStream
 import java.net.Socket
 
 /**
@@ -11,14 +14,19 @@ class ClientSession(
     private val bullet: Bullet,
 ) : AutoCloseable {
     private val out = socket.getOutputStream()
-    private val input = socket.getInputStream()
+    private val input = DataInputStream(socket.getInputStream())
 
     /**
      * This is where all data will be received
      */
     fun handle() {
         while(!isClosed()) {
+            val len = input.readVarInt()
+            val id = input.readByte()
+            val data = (len - 1).toByte()
+            input.readFully(byteArrayOf(data))
 
+            println(id)
         }
     }
 

@@ -3,7 +3,6 @@ package com.aznos.datatypes
 import java.io.DataInputStream
 import java.io.IOException
 import java.io.OutputStream
-import kotlin.experimental.and
 import kotlin.jvm.Throws
 
 /**
