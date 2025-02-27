@@ -11,7 +11,7 @@ object Bullet : AutoCloseable {
     const val PROTOCOL: Int = 769 // Protocol version 769 = Minecraft version 1.21.4
     const val VERSION: String = "1.21.4"
     const val MAX_PLAYERS: Int = 20
-    const val DESCRIPTION: String = "Runs as fast as a bullet"
+    const val DESCRIPTION: String = "§6Runs as fast as a bullet"
 
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
