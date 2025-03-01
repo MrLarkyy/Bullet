@@ -5,6 +5,7 @@ import com.aznos.ClientSession
 import com.aznos.GameState
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
+import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
@@ -22,7 +23,7 @@ class PacketHandler(
 ) {
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
-        println("${packet.username} tried to join the server")
+        client.sendPacket(ServerLoginDisconnectPacket("Work in progress"))
     }
 
     /**
