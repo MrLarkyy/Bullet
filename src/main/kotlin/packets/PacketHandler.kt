@@ -23,7 +23,15 @@ class PacketHandler(
 ) {
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
-        client.sendPacket(ServerLoginDisconnectPacket("Work in progress"))
+        if(client.protocol > Bullet.PROTOCOL) {
+            client.sendPacket(ServerLoginDisconnectPacket("Please downgrade your minecraft version to " + Bullet.VERSION))
+            return
+        } else if(client.protocol < Bullet.PROTOCOL) {
+            client.sendPacket(ServerLoginDisconnectPacket("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION))
+            return
+        }
+
+        client.sendPacket(ServerLoginDisconnectPacket("All checks passed!"))
     }
 
     /**
