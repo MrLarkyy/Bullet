@@ -1,5 +1,9 @@
 package com.aznos
 
+import com.google.gson.JsonParser
+import dev.dewy.nbt.api.registry.TagTypeRegistry
+import dev.dewy.nbt.tags.collection.CompoundTag
+import java.io.InputStreamReader
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
@@ -16,6 +20,8 @@ object Bullet : AutoCloseable {
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
 
+    var dimensionCodec: CompoundTag? = null
+
     /**
      * Creates and runs the server instance
      *
@@ -26,6 +32,13 @@ object Bullet : AutoCloseable {
         server = ServerSocket().apply {
             bind(InetSocketAddress(host, port))
         }
+
+        val reader = javaClass.getResourceAsStream("/codec.json")?.let {
+            InputStreamReader(it)
+        }
+
+        val parsed = JsonParser.parseReader(reader).asJsonObject
+        dimensionCodec = CompoundTag().fromJson(parsed, 0, TagTypeRegistry())
 
         println("Bullet server started at $host:$port")
 

@@ -8,9 +8,11 @@ import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
+import com.aznos.packets.play.out.ServerJoinGamePacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
+import com.aznos.player.GameMode
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
@@ -50,6 +52,21 @@ class PacketHandler(
         client.uuid = uuid
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
+        client.state = GameState.PLAY
+
+        client.sendPacket(ServerJoinGamePacket(
+            0,
+            false,
+            GameMode.CREATIVE,
+            "minecraft:overworld",
+            Bullet.dimensionCodec!!,
+            Bullet.MAX_PLAYERS,
+            8,
+            false,
+            true,
+            false,
+            true
+        ))
     }
 
     /**
