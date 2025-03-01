@@ -29,25 +29,20 @@ class ClientSession(
      */
     fun handle() {
         while (!isClosed()) {
-            try {
-                val len = input.readVarInt()
-                val id = input.readVarInt()
-                val dataLength = len - VarInt.getVarIntSize(id)
-                val data = ByteArray(dataLength)
-                input.readFully(data)
+            val len = input.readVarInt()
+            val id = input.readVarInt()
+            val dataLength = len - VarInt.getVarIntSize(id)
+            val data = ByteArray(dataLength)
+            input.readFully(data)
 
-                val packetClass = PacketRegistry.getPacket(state, id)
-                if (packetClass != null) {
-                    val packet: Packet = packetClass
-                        .getConstructor(ByteArray::class.java)
-                        .newInstance(data)
-                    handler.handle(packet)
-                } else {
-                    println("No registered packet for state $state with id $id")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                break
+            val packetClass = PacketRegistry.getPacket(state, id)
+            if (packetClass != null) {
+                val packet: Packet = packetClass
+                    .getConstructor(ByteArray::class.java)
+                    .newInstance(data)
+                handler.handle(packet)
+            } else {
+                println("No registered packet for state $state with id $id")
             }
         }
     }

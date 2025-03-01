@@ -8,8 +8,8 @@ import java.util.concurrent.Executors
  * This is where the core of the bullet server logic will be housed
  */
 object Bullet : AutoCloseable {
-    const val PROTOCOL: Int = 769 // Protocol version 769 = Minecraft version 1.21.4
-    const val VERSION: String = "1.21.4"
+    const val PROTOCOL: Int = 754 // Protocol version 769 = Minecraft version 1.16.5
+    const val VERSION: String = "1.16.5"
     const val MAX_PLAYERS: Int = 20
     const val DESCRIPTION: String = "§6Runs as fast as a bullet"
 

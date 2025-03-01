@@ -1,6 +1,7 @@
 package com.aznos.packets
 
 import com.aznos.GameState
+import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import packets.handshake.HandshakePacket
@@ -31,7 +32,7 @@ object PacketRegistry {
 
         //LOGIN
         val loginPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
-
+            this[0x00] = ClientLoginStartPacket::class.java
         }
 
         packets[GameState.LOGIN] = loginPackets

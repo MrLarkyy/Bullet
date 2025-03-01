@@ -4,6 +4,7 @@ import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
 import com.aznos.packets.data.ServerStatusResponse
+import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
@@ -19,6 +20,11 @@ import packets.status.out.ServerStatusResponsePacket
 class PacketHandler(
     private val client: ClientSession
 ) {
+    @PacketReceiver
+    fun onLoginStart(packet: ClientLoginStartPacket) {
+        println("${packet.username} tried to join the server")
+    }
+
     /**
      * Handles a ping packet by sending a pong response and closing the connection
      */
