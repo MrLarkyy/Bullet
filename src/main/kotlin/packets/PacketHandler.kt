@@ -3,15 +3,18 @@ package com.aznos.packets
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.datatypes.UUIDType
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
+import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
+import java.util.UUID
 
 /**
  * Handles all incoming packets by dispatching them to the appropriate handler methods
@@ -42,7 +45,11 @@ class PacketHandler(
             return
         }
 
-        client.sendPacket(ServerLoginDisconnectPacket("All checks passed"))
+        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
+        client.username = username
+        client.uuid = uuid
+
+        client.sendPacket(ServerLoginSuccessPacket(uuid, username))
     }
 
     /**

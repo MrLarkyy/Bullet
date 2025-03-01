@@ -7,6 +7,7 @@ import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
 import java.io.DataInputStream
 import java.net.Socket
+import java.util.UUID
 
 /**
  * Represents a session between a connected client and the server
@@ -22,6 +23,9 @@ class ClientSession(
 
     var state = GameState.HANDSHAKE
     var protocol = -1
+
+    var username: String? = null
+    var uuid: UUID? = null
 
     /**
      * Reads and processes incoming packets from the client
