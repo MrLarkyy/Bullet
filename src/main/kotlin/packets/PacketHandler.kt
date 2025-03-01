@@ -21,6 +21,11 @@ import packets.status.out.ServerStatusResponsePacket
 class PacketHandler(
     private val client: ClientSession
 ) {
+    /**
+     * Handles when the client tells the server it's ready to log in
+     *
+     * The server first checks for a valid version and uuid, then
+     */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
         if(client.protocol > Bullet.PROTOCOL) {
@@ -31,7 +36,13 @@ class PacketHandler(
             return
         }
 
-        client.sendPacket(ServerLoginDisconnectPacket("All checks passed!"))
+        val username = packet.username
+        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
+            client.sendPacket(ServerLoginDisconnectPacket("Invalid username"))
+            return
+        }
+
+        client.sendPacket(ServerLoginDisconnectPacket("All checks passed"))
     }
 
     /**
