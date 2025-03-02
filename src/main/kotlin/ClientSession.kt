@@ -7,10 +7,10 @@ import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
 import com.aznos.packets.play.out.ServerKeepAlivePacket
 import java.io.DataInputStream
+import java.io.IOException
 import java.net.Socket
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 /**
  * Represents a session between a connected client and the server
@@ -63,16 +63,7 @@ class ClientSession(
     fun scheduleKeepAlive() {
         keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
-                try {
-                    sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
-                } catch(e: Exception) {
-                    cancel()
-                    try {
-                        close()
-                    } catch(e1: Exception) {
-                        println("Error cancelling timer")
-                    }
-                }
+                sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
             }
         }, 1.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
     }

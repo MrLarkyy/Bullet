@@ -3,7 +3,8 @@ package com.aznos.packets.play.out
 import com.aznos.packets.Packet
 
 /**
- * Sends the player position and look packet to the client, this is the last packet needed in order for the client to join the world
+ * Sends the player position and look packet to the client
+ * this is the last packet needed in order for the client to join the world
  *
  * @param x The X position
  * @param y The Y position

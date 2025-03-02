@@ -25,12 +25,14 @@ import java.util.UUID
  *
  * @property client The clients session
  */
+@Suppress("UnusedParameter")
 class PacketHandler(
     private val client: ClientSession
 ) {
     /**
      * Handles when the client responds to the server keep alive packet to tell the server the client is still online
      */
+    @Suppress("EmptyFunctionBlock")
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
 
@@ -40,15 +42,20 @@ class PacketHandler(
      * Handles when the client tells the server it's ready to log in
      *
      * The server first checks for a valid version and uuid, then sends a login success packet
-     * It'll then transition the game state into play mode, and send a join game and player position/look packet to get past all loading screens
+     * It'll then transition the game state into play mode
+     * and send a join game and player position/look packet to get past all loading screens
      */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
         if(client.protocol > Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket("Please downgrade your minecraft version to " + Bullet.VERSION))
+            client.sendPacket(ServerLoginDisconnectPacket(
+                "Please downgrade your minecraft version to " + Bullet.VERSION)
+            )
             return
         } else if(client.protocol < Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION))
+            client.sendPacket(ServerLoginDisconnectPacket(
+                "Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
+            )
             return
         }
 

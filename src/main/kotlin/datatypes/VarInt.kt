@@ -15,11 +15,11 @@ import kotlin.jvm.Throws
  */
 object VarInt {
     /**
-     * Reads a VarInt from the [DataInputStream]
+     * Reads a com.aznos.datatypes.VarInt from the [DataInputStream]
      *
      * @return The decoded integer
      * @throws IOException If an I/O error occurs while reading the input stream
-     * @throws RuntimeException If the VarInt exceeds 5 bytes (out of range)
+     * @throws IllegalArgumentException If the com.aznos.datatypes.VarInt is too large
      */
     @Throws(IOException::class)
     fun DataInputStream.readVarInt(): Int {
@@ -34,14 +34,14 @@ object VarInt {
             result = result or (value shl (7 * numRead))
 
             numRead++
-            if (numRead > 5) throw RuntimeException("VarInt too big")
+            require(numRead <= 5) { "com.aznos.datatypes.VarInt is too big" }
         } while ((read.toInt() and 0b10000000) != 0)
 
         return result
     }
 
     /**
-     * Writes a VarInt to the [OutputStream]
+     * Writes a com.aznos.datatypes.VarInt to the [OutputStream]
      *
      * @param value The integer to be encoded
      * @throws IOException If an I/O error occurs while reading the input stream
