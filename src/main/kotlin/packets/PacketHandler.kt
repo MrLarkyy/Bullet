@@ -9,6 +9,7 @@ import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.out.ServerJoinGamePacket
+import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
@@ -67,6 +68,8 @@ class PacketHandler(
             false,
             true
         ))
+
+        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
     }
 
     /**

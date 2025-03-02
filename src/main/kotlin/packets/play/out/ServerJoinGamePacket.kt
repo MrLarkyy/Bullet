@@ -10,7 +10,16 @@ import dev.dewy.nbt.tags.collection.CompoundTag
 /**
  * Packet sent to the client that sends all the information needed to join the game
  *
- * @param payload The long timestamp of the ping request
+ * @param entityID The players entity id
+ * @param hardcore If the world is hardcore or not
+ * @param gameMode The players gamemode
+ * @param world The world name
+ * @param codec The dimension codec
+ * @param maxPlayers The maximum amount of players that can join the world
+ * @param viewDistance The view distance set by the server
+ * @param reducedDebugInfo Whether to have reduced debug info
+ * @param isDebug Whether the server is on debug ode
+ * @param isFlat Whether the world is flat or not
  */
 class ServerJoinGamePacket(
     entityID: Int,
