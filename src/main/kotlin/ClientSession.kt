@@ -63,9 +63,18 @@ class ClientSession(
     fun scheduleKeepAlive() {
         keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
-                sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
+                try {
+                    sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
+                } catch(e: Exception) {
+                    cancel()
+                    try {
+                        close()
+                    } catch(e1: Exception) {
+                        println("Error cancelling timer")
+                    }
+                }
             }
-        }, 1.seconds.inWholeMilliseconds, 20.seconds.inWholeMilliseconds)
+        }, 1.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
     }
 
     /**
