@@ -80,6 +80,7 @@ class PacketHandler(
         ))
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        client.scheduleKeepAlive()
     }
 
     /**

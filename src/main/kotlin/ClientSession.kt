@@ -34,11 +34,7 @@ class ClientSession(
      * This timer will keep track of when to send the keep alive packet to the client
      */
 
-    private val keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
-        override fun run() {
-            sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
-        }
-    }, 20.seconds.inWholeMilliseconds, 20.seconds.inWholeMilliseconds)
+    private var keepAliveTimer: Unit? = null
 
     /**
      * Reads and processes incoming packets from the client
@@ -62,6 +58,14 @@ class ClientSession(
                 println("No registered packet for state $state with id $id")
             }
         }
+    }
+
+    fun scheduleKeepAlive() {
+        keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
+            }
+        }, 1.seconds.inWholeMilliseconds, 20.seconds.inWholeMilliseconds)
     }
 
     /**
@@ -89,6 +93,7 @@ class ClientSession(
      * Closes connection
      */
     override fun close() {
+        keepAliveTimer = null
         socket.close()
     }
 }
