@@ -8,6 +8,7 @@ import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
+import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerJoinGamePacket
 import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
@@ -28,9 +29,18 @@ class PacketHandler(
     private val client: ClientSession
 ) {
     /**
+     * Handles when the client responds to the server keep alive packet to tell the server the client is still online
+     */
+    @PacketReceiver
+    fun onKeepAlive(packet: ClientKeepAlivePacket) {
+
+    }
+
+    /**
      * Handles when the client tells the server it's ready to log in
      *
-     * The server first checks for a valid version and uuid, then
+     * The server first checks for a valid version and uuid, then sends a login success packet
+     * It'll then transition the game state into play mode, and send a join game and player position/look packet to get past all loading screens
      */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {

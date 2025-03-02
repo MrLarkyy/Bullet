@@ -5,9 +5,12 @@ import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
+import com.aznos.packets.play.out.ServerKeepAlivePacket
 import java.io.DataInputStream
 import java.net.Socket
-import java.util.UUID
+import java.util.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 /**
  * Represents a session between a connected client and the server
@@ -26,6 +29,16 @@ class ClientSession(
 
     var username: String? = null
     var uuid: UUID? = null
+
+    /**
+     * This timer will keep track of when to send the keep alive packet to the client
+     */
+
+    private val keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
+        override fun run() {
+            sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
+        }
+    }, 20.seconds.inWholeMilliseconds, 20.seconds.inWholeMilliseconds)
 
     /**
      * Reads and processes incoming packets from the client
