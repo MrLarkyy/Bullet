@@ -3,13 +3,22 @@ package com.aznos.packets
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.datatypes.UUIDType
 import com.aznos.packets.data.ServerStatusResponse
+import com.aznos.packets.login.`in`.ClientLoginStartPacket
+import com.aznos.packets.login.out.ServerLoginDisconnectPacket
+import com.aznos.packets.login.out.ServerLoginSuccessPacket
+import com.aznos.packets.play.`in`.ClientKeepAlivePacket
+import com.aznos.packets.play.out.ServerJoinGamePacket
+import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
+import com.aznos.player.GameMode
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
+import java.util.UUID
 
 /**
  * Handles all incoming packets by dispatching them to the appropriate handler methods
@@ -19,6 +28,61 @@ import packets.status.out.ServerStatusResponsePacket
 class PacketHandler(
     private val client: ClientSession
 ) {
+    /**
+     * Handles when the client responds to the server keep alive packet to tell the server the client is still online
+     */
+    @PacketReceiver
+    fun onKeepAlive(packet: ClientKeepAlivePacket) {
+
+    }
+
+    /**
+     * Handles when the client tells the server it's ready to log in
+     *
+     * The server first checks for a valid version and uuid, then sends a login success packet
+     * It'll then transition the game state into play mode, and send a join game and player position/look packet to get past all loading screens
+     */
+    @PacketReceiver
+    fun onLoginStart(packet: ClientLoginStartPacket) {
+        if(client.protocol > Bullet.PROTOCOL) {
+            client.sendPacket(ServerLoginDisconnectPacket("Please downgrade your minecraft version to " + Bullet.VERSION))
+            return
+        } else if(client.protocol < Bullet.PROTOCOL) {
+            client.sendPacket(ServerLoginDisconnectPacket("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION))
+            return
+        }
+
+        val username = packet.username
+        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
+            client.sendPacket(ServerLoginDisconnectPacket("Invalid username"))
+            return
+        }
+
+        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
+        client.username = username
+        client.uuid = uuid
+
+        client.sendPacket(ServerLoginSuccessPacket(uuid, username))
+        client.state = GameState.PLAY
+
+        client.sendPacket(ServerJoinGamePacket(
+            0,
+            false,
+            GameMode.CREATIVE,
+            "minecraft:overworld",
+            Bullet.dimensionCodec!!,
+            Bullet.MAX_PLAYERS,
+            8,
+            false,
+            true,
+            false,
+            true
+        ))
+
+        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        client.scheduleKeepAlive()
+    }
+
     /**
      * Handles a ping packet by sending a pong response and closing the connection
      */
