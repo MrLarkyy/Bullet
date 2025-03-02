@@ -6,7 +6,6 @@ import com.aznos.GameState
 import com.aznos.datatypes.UUIDType
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
-import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerJoinGamePacket
@@ -32,10 +31,9 @@ class PacketHandler(
     /**
      * Handles when the client responds to the server keep alive packet to tell the server the client is still online
      */
-    @Suppress("EmptyFunctionBlock")
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
-
+        client.respondedToKeepAlive = true
     }
 
     /**
@@ -48,20 +46,16 @@ class PacketHandler(
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
         if(client.protocol > Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket(
-                "Please downgrade your minecraft version to " + Bullet.VERSION)
-            )
+            client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
             return
         } else if(client.protocol < Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket(
-                "Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
-            )
+            client.disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
             return
         }
 
         val username = packet.username
         if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
-            client.sendPacket(ServerLoginDisconnectPacket("Invalid username"))
+            client.disconnect("Invalid username")
             return
         }
 
