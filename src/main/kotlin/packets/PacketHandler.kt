@@ -15,9 +15,11 @@ import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.player.ChatMessage
 import com.aznos.player.GameMode
 import kotlinx.serialization.json.Json
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
 import java.util.UUID
@@ -49,11 +51,14 @@ class PacketHandler(
         EventManager.fire(event)
         if(event.isCancelled) return
 
-        client.sendMessage(
-            ChatMessage.Builder()
-                .text("<${client.username}> $formattedMessage")
-                .build()
-        )
+        val textComponent = Component.text()
+            .append(Component.text().content("<").color(NamedTextColor.GRAY))
+            .append(Component.text().content(client.username!!).color(TextColor.color(0x55FFFF)))
+            .append(Component.text().content("> ").color(NamedTextColor.GRAY))
+            .append(Component.text().content(formattedMessage).color(TextColor.color(0xFFFFFF)))
+            .build()
+
+        client.sendMessage(textComponent)
     }
 
     /**
