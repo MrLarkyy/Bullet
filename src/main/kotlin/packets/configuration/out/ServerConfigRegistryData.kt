@@ -10,14 +10,19 @@ import dev.dewy.nbt.tags.collection.CompoundTag
 /**
  * This packet is sent when you want to apply registries to the client
 */
-class ServerConfigRegistryData private constructor(registry: Registry<*>? = null, key: String? = null, entries: List<RawEntry>?) : Packet(0x07) {
+class ServerConfigRegistryData private constructor(
+    registry: Registry<*>? = null,
+    key: String? = null,
+    entries: List<RawEntry>?
+) : Packet(0x07) {
 
     constructor(registry: Registry<*>): this(registry, null, null)
     constructor(key: String, entries: List<RawEntry>): this(null, key, entries)
 
     init {
         if (registry != null) {
-            wrapper.write(registry.cachedNetworkPacket ?: throw IllegalStateException("Cannot serialize unlocked registry"))
+            wrapper.write(registry.cachedNetworkPacket
+                ?: error("Cannot serialize unlocked registry"))
         } else {
             wrapper.writeString(key!!)
             wrapper.writeVarInt(entries!!.size)

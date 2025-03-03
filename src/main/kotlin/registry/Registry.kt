@@ -34,8 +34,9 @@ abstract class Registry<T>(val key: String) {
     }
 
     private fun checkLocked() {
-        if (locked)
-            throw IllegalStateException("Cannot operate on a locked registry")
+        check(!locked) {
+            "Cannot operate on a locked registry"
+        }
     }
 
     fun register(key: String, value: T): T {

@@ -1,21 +1,31 @@
 package com.aznos.packets
 
+import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
-import com.aznos.datatypes.UUIDType
+import com.aznos.events.*
+import com.aznos.packets.configuration.out.ServerConfigFinishPacket
+import com.aznos.packets.configuration.out.ServerConfigRegistryData
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
-import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
+import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
+import com.aznos.packets.play.out.ServerGameEvent
 import com.aznos.packets.play.out.ServerJoinGamePacket
-import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
+import com.aznos.packets.play.out.ServerSyncPlayerPosition
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.player.GameMode
+import com.aznos.registry.Registries
+import dev.dewy.nbt.tags.collection.CompoundTag
+import jdk.jfr.internal.Bits.putInt
 import kotlinx.serialization.json.Json
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
 import java.util.UUID
@@ -25,36 +35,74 @@ import java.util.UUID
  *
  * @property client The clients session
  */
+@Suppress("UnusedParameter")
 class PacketHandler(
     private val client: ClientSession
 ) {
+    /**
+     * Handles when a chat message is received
+     */
+    @PacketReceiver
+    fun onChatMessage(packet: ClientChatMessagePacket) {
+        val message = packet.message
+
+        if(message.length > 255) {
+            client.disconnect("Message too long")
+            return
+        }
+
+        val formattedMessage = message.replace('&', '§')
+
+        val event = PlayerChatEvent(client.username!!, formattedMessage)
+        EventManager.fire(event)
+        if(event.isCancelled) return
+
+        val textComponent = Component.text()
+            .append(Component.text().content("<").color(NamedTextColor.GRAY))
+            .append(Component.text().content(client.username!!).color(TextColor.color(0x55FFFF)))
+            .append(Component.text().content("> ").color(NamedTextColor.GRAY))
+            .append(Component.text().content(formattedMessage).color(TextColor.color(0xFFFFFF)))
+            .build()
+
+        client.sendMessage(textComponent)
+    }
+
     /**
      * Handles when the client responds to the server keep alive packet to tell the server the client is still online
      */
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
+        val event = PlayerHeartbeatEvent(client.username!!)
+        EventManager.fire(event)
+        if(event.isCancelled) return
 
+        client.respondedToKeepAlive = true
     }
 
     /**
      * Handles when the client tells the server it's ready to log in
      *
      * The server first checks for a valid version and uuid, then sends a login success packet
-     * It'll then transition the game state into play mode, and send a join game and player position/look packet to get past all loading screens
+     * It'll then transition the game state into play mode
+     * and send a join game and player position/look packet to get past all loading screens
      */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
+        val preJoinEvent = PlayerPreJoinEvent()
+        EventManager.fire(preJoinEvent)
+        if(preJoinEvent.isCancelled) return
+
         if(client.protocol > Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket("Please downgrade your minecraft version to " + Bullet.VERSION))
+            client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
             return
         } else if(client.protocol < Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION))
+            client.disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
             return
         }
 
         val username = packet.username
         if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
-            client.sendPacket(ServerLoginDisconnectPacket("Invalid username"))
+            client.disconnect("Invalid username")
             return
         }
 
@@ -63,23 +111,44 @@ class PacketHandler(
         client.uuid = uuid
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
+        client.state = GameState.CONFIGURATION
+
+        client.sendPacket(ServerConfigRegistryData(Registries.dimension_type))
+        client.sendPacket(ServerConfigRegistryData(Registries.biomes))
+        client.sendPacket(ServerConfigRegistryData(Registries.wolf_variant))
+        client.sendPacket(ServerConfigRegistryData(Registries.damage_type))
+
+        client.sendPacket(
+            ServerConfigRegistryData("minecraft:painting_variant", listOf(
+            ServerConfigRegistryData.RawEntry("minecraft:alban", CompoundTag().apply {
+                putString("asset_id", "minecraft:alban")
+                putInt("height", 1)
+                putInt("width", 1)
+                putString("title", "gg")
+                putString("author", "gg")
+            })
+        ))
+        )
+
+        client.sendPacket(ServerConfigFinishPacket())
         client.state = GameState.PLAY
 
         client.sendPacket(ServerJoinGamePacket(
             0,
             false,
-            GameMode.CREATIVE,
-            "minecraft:overworld",
-            Bullet.dimensionCodec!!,
-            Bullet.MAX_PLAYERS,
+            listOf("minecraft:overworld"),
+            0,
             8,
             false,
             true,
-            false,
-            true
+            0,
+            "minecraft:overworld",
+            GameMode.SPECTATOR,
+            false
         ))
 
-        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        client.sendPacket(ServerGameEvent(13, 0f))
+        client.sendPacket(ServerSyncPlayerPosition(0, 8.5, 0.0, 8.5, 0.0, 5.0, 0.0, 0f, 90f))
         client.scheduleKeepAlive()
     }
 
@@ -97,10 +166,14 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
+        val event = StatusRequestEvent(Bullet.MAX_PLAYERS, 0, Bullet.DESCRIPTION)
+        EventManager.fire(event)
+        if(event.isCancelled) return
+
         val response = ServerStatusResponse(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
-            ServerStatusResponse.Players(Bullet.MAX_PLAYERS, 0),
-            Bullet.DESCRIPTION,
+            ServerStatusResponse.Players(event.maxPlayers, event.onlinePlayers),
+            event.motd,
             false
         )
 
@@ -114,6 +187,10 @@ class PacketHandler(
     fun onHandshake(packet: HandshakePacket) {
         client.state = if(packet.state == 2) GameState.LOGIN else GameState.STATUS
         client.protocol = packet.protocol ?: -1
+
+        val event = HandshakeEvent(client.state, client.protocol)
+        EventManager.fire(event)
+        if(event.isCancelled) return
     }
 
     /**
