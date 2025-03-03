@@ -3,10 +3,9 @@ package com.aznos.packets
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
-import com.aznos.datatypes.UUIDType
+import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
-import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerJoinGamePacket
@@ -32,10 +31,13 @@ class PacketHandler(
     /**
      * Handles when the client responds to the server keep alive packet to tell the server the client is still online
      */
-    @Suppress("EmptyFunctionBlock")
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
+        val event = PlayerHeartbeatEvent(client.username!!)
+        EventManager.fire(event)
+        if(event.isCancelled) return
 
+        client.respondedToKeepAlive = true
     }
 
     /**
@@ -47,21 +49,21 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
+        val preJoinEvent = PlayerPreJoinEvent()
+        EventManager.fire(preJoinEvent)
+        if(preJoinEvent.isCancelled) return
+
         if(client.protocol > Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket(
-                "Please downgrade your minecraft version to " + Bullet.VERSION)
-            )
+            client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
             return
         } else if(client.protocol < Bullet.PROTOCOL) {
-            client.sendPacket(ServerLoginDisconnectPacket(
-                "Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
-            )
+            client.disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
             return
         }
 
         val username = packet.username
         if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
-            client.sendPacket(ServerLoginDisconnectPacket("Invalid username"))
+            client.disconnect("Invalid username")
             return
         }
 
@@ -87,6 +89,11 @@ class PacketHandler(
         ))
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+
+        val joinEvent = PlayerJoinEvent(client.username!!)
+        EventManager.fire(joinEvent)
+        if(joinEvent.isCancelled) return
+
         client.scheduleKeepAlive()
     }
 
@@ -104,10 +111,14 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
+        val event = StatusRequestEvent(Bullet.MAX_PLAYERS, 0, Bullet.DESCRIPTION)
+        EventManager.fire(event)
+        if(event.isCancelled) return
+
         val response = ServerStatusResponse(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
-            ServerStatusResponse.Players(Bullet.MAX_PLAYERS, 0),
-            Bullet.DESCRIPTION,
+            ServerStatusResponse.Players(event.maxPlayers, event.onlinePlayers),
+            event.motd,
             false
         )
 
@@ -121,6 +132,10 @@ class PacketHandler(
     fun onHandshake(packet: HandshakePacket) {
         client.state = if(packet.state == 2) GameState.LOGIN else GameState.STATUS
         client.protocol = packet.protocol ?: -1
+
+        val event = HandshakeEvent(client.state, client.protocol)
+        EventManager.fire(event)
+        if(event.isCancelled) return
     }
 
     /**

@@ -27,6 +27,10 @@ application {
     mainClass = "com.aznos.MainKt"
 }
 
+tasks.register("runServer") {
+    dependsOn("detekt", "run")
+}
+
 kotlin {
     jvmToolchain(21)
 }
