@@ -45,7 +45,6 @@ object Bullet : AutoCloseable {
 
         while(!isClosed()) {
             val client = server?.accept()
-            println("${client?.inetAddress} connected")
 
             pool.submit {
                 client?.let {

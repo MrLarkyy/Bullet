@@ -1,5 +1,6 @@
 package com.aznos.packets
 
+import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
@@ -88,13 +89,14 @@ class PacketHandler(
             true
         ))
 
-        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))
 
         val joinEvent = PlayerJoinEvent(client.username!!)
         EventManager.fire(joinEvent)
         if(joinEvent.isCancelled) return
 
         client.scheduleKeepAlive()
+        client.sendPacket(ServerChunkPacket(0, 0))
     }
 
     /**
