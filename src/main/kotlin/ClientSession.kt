@@ -3,7 +3,6 @@ package com.aznos
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.events.EventManager
-import com.aznos.events.PlayerPreJoinEvent
 import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
@@ -15,7 +14,6 @@ import com.aznos.packets.play.out.ServerPlayDisconnectPacket
 import com.aznos.player.ChatMessage
 import com.aznos.player.ChatPosition
 import java.io.DataInputStream
-import java.io.IOException
 import java.net.Socket
 import java.util.*
 import kotlin.time.Duration.Companion.seconds

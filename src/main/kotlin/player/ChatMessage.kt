@@ -11,6 +11,7 @@ import com.google.gson.Gson
  * @property extra A list of additional [ChatMessage] objects that can be appended to the main message.
  * @property with A list of [ChatMessage] objects used for translation purposes.
  */
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class ChatMessage private constructor(
     val text: String?,
     val translate: String?,

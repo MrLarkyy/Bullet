@@ -110,10 +110,10 @@ class PacketHandler(
             Bullet.dimensionCodec!!,
             Bullet.MAX_PLAYERS,
             8,
-            false,
-            true,
-            false,
-            true
+            reducedDebugInfo = false,
+            enableRespawnScreen = true,
+            isDebug = false,
+            isFlat = true
         ))
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))

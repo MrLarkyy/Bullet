@@ -2,8 +2,6 @@ package com.aznos.events
 
 import com.aznos.GameState
 
-sealed class Events
-
 //Unmodifiable events
 
 /**
