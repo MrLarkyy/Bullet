@@ -1,6 +1,6 @@
 package com.aznos.packets
 
-import com.aznos.packets.play.out.ServerEmptyChunkPacket
+import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
@@ -96,7 +96,7 @@ class PacketHandler(
         if(joinEvent.isCancelled) return
 
         client.scheduleKeepAlive()
-        client.sendPacket(ServerEmptyChunkPacket(0, 0))
+        client.sendPacket(ServerChunkPacket(0, 0))
     }
 
     /**
