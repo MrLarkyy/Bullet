@@ -3,22 +3,18 @@ package com.aznos.packets
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
-import com.aznos.packets.configuration.out.ServerConfigFinishPacket
-import com.aznos.packets.configuration.out.ServerConfigRegistryData
+import com.aznos.datatypes.UUIDType
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
-import com.aznos.packets.play.out.ServerGameEvent
 import com.aznos.packets.play.out.ServerJoinGamePacket
-import com.aznos.packets.play.out.ServerSyncPlayerPosition
+import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.player.GameMode
-import com.aznos.registry.Registries
-import dev.dewy.nbt.tags.collection.CompoundTag
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
@@ -67,42 +63,23 @@ class PacketHandler(
         client.uuid = uuid
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
-        client.state = GameState.CONFIGURATION
-
-        client.sendPacket(ServerConfigRegistryData(Registries.dimension_type))
-        client.sendPacket(ServerConfigRegistryData(Registries.biomes))
-        client.sendPacket(ServerConfigRegistryData(Registries.wolf_variant))
-        client.sendPacket(ServerConfigRegistryData(Registries.damage_type))
-
-        client.sendPacket(ServerConfigRegistryData("minecraft:painting_variant", listOf(
-            ServerConfigRegistryData.RawEntry("minecraft:alban", CompoundTag().apply {
-                putString("asset_id", "minecraft:alban")
-                putInt("height", 1)
-                putInt("width", 1)
-                putString("title", "gg")
-                putString("author", "gg")
-            })
-        )))
-        
-        client.sendPacket(ServerConfigFinishPacket())
         client.state = GameState.PLAY
 
         client.sendPacket(ServerJoinGamePacket(
             0,
             false,
-            listOf("minecraft:overworld"),
-            0,
+            GameMode.CREATIVE,
+            "minecraft:overworld",
+            Bullet.dimensionCodec!!,
+            Bullet.MAX_PLAYERS,
             8,
             false,
             true,
-            0,
-            "minecraft:overworld",
-            GameMode.SPECTATOR,
-            false
+            false,
+            true
         ))
 
-        client.sendPacket(ServerGameEvent(13, 0f))
-        client.sendPacket(ServerSyncPlayerPosition(0, 0.0, -10000.0, 0.0, 0.0, 5.0, 0.0, 0f, 90f))
+        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
         client.scheduleKeepAlive()
     }
 

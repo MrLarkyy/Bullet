@@ -9,6 +9,7 @@ import java.io.*
  *
  * @param data The raw packet data
  */
+@Suppress("TooManyFunctions")
 open class Packet(
     private val data: ByteArray
 ) : DataOutput {

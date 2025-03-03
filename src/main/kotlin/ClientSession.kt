@@ -2,20 +2,29 @@ package com.aznos
 
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
+import com.aznos.events.EventManager
+import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
+import com.aznos.packets.login.out.ServerLoginDisconnectPacket
+import com.aznos.packets.play.out.ServerChatMessagePacket
 import com.aznos.packets.play.out.ServerKeepAlivePacket
+import com.aznos.packets.play.out.ServerPlayDisconnectPacket
+import com.aznos.player.ChatPosition
+import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream
 import java.net.Socket
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 /**
  * Represents a session between a connected client and the server
  *
- * @property socket The clients socket connection
+ * @param socket The clients socket connection
+ * @property out The output stream to send packets to the client
+ * @property input The input stream to read packets from the client
+ * @property handler The packet handler to handle incoming packets
  */
 class ClientSession(
     private val socket: Socket,
@@ -33,8 +42,8 @@ class ClientSession(
     /**
      * This timer will keep track of when to send the keep alive packet to the client
      */
-
     private var keepAliveTimer: Unit? = null
+    var respondedToKeepAlive: Boolean = true
 
     /**
      * Reads and processes incoming packets from the client
@@ -63,18 +72,40 @@ class ClientSession(
     fun scheduleKeepAlive() {
         keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
-                try {
-                    sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
-                } catch(e: Exception) {
+                if(!respondedToKeepAlive) {
+                    disconnect("Timed out")
                     cancel()
-                    try {
-                        close()
-                    } catch(e1: Exception) {
-                        println("Error cancelling timer")
-                    }
+                    return
                 }
+                sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
+                respondedToKeepAlive = true
             }
-        }, 1.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
+        }, 10.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
+    }
+
+    /**
+     * Sends a chat message to the client
+     *
+     * @param message The message to be sent to the client
+     */
+    fun sendMessage(message: TextComponent) {
+        sendPacket(ServerChatMessagePacket(message, ChatPosition.CHAT, null))
+    }
+
+    /**
+     * Disconnects the client that is in the play state with the server play disconnect packet
+     *
+     * @param message The message to be sent to the client
+     */
+    fun disconnect(message: String) {
+        if(state == GameState.PLAY) {
+            sendPacket(ServerPlayDisconnectPacket(message))
+        } else if(state == GameState.LOGIN) {
+            sendPacket(ServerLoginDisconnectPacket(message))
+        }
+
+        EventManager.fire(PlayerQuitEvent(username!!))
+        close()
     }
 
     /**

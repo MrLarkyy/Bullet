@@ -9,16 +9,16 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 
 /**
- * Utility class for handling strings with VarInt prefixed length encoding
+ * Utility class for handling strings with com.aznos.datatypes.VarInt prefixed length encoding
  *
  * This format is used in communication where a string is stored as
- * a VarInt length followed by the UTF-8 encoded byte sequence
+ * a com.aznos.datatypes.VarInt length followed by the UTF-8 encoded byte sequence
  */
 object StringType {
     /**
      * Reads a string from the [DataInputStream]
      *
-     * The method first reads a VarInt that represents the string length then read the
+     * The method first reads a com.aznos.datatypes.VarInt that represents the string length then read the
      * corresponding number of bytes and decodes them as a UTF-8 string
      *
      * @return Decoded string
@@ -35,7 +35,7 @@ object StringType {
     /**
      * Writes a string to the [OutputStream]
      *
-     * The method writes a string length as a VarInt, then write the UTF-8 encoded bytes
+     * The method writes a string length as a com.aznos.datatypes.VarInt, then write the UTF-8 encoded bytes
      *
      * @param value The string to encode
      * @throws IOException If an I/O error occurs while reading the input stream
