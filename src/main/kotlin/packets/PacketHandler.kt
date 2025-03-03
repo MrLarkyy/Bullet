@@ -101,7 +101,7 @@ class PacketHandler(
             false
         ))
 
-        client.sendPacket(ServerGameEvent(0x13, 0f))
+        client.sendPacket(ServerGameEvent(13, 0f))
         client.sendPacket(ServerSyncPlayerPosition(0, 0.0, -10000.0, 0.0, 0.0, 5.0, 0.0, 0f, 90f))
         client.scheduleKeepAlive()
     }
