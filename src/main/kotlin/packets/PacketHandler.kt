@@ -1,6 +1,5 @@
 package com.aznos.packets
 
-import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
@@ -14,6 +13,7 @@ import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerGameEvent
 import com.aznos.packets.play.out.ServerJoinGamePacket
+import com.aznos.packets.play.out.ServerSetChunkCacheCenterPacket
 import com.aznos.packets.play.out.ServerSyncPlayerPosition
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
@@ -149,6 +149,7 @@ class PacketHandler(
 
         client.sendPacket(ServerGameEvent(13, 0f))
         client.sendPacket(ServerSyncPlayerPosition(0, 8.5, 0.0, 8.5, 0.0, 5.0, 0.0, 0f, 90f))
+        client.sendPacket(ServerSetChunkCacheCenterPacket())
         client.scheduleKeepAlive()
     }
 
