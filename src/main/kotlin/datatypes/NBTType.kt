@@ -36,3 +36,5 @@ object NBTType {
     }
 
 }
+
+fun CompoundTag.putBoolean(name: String, value: Boolean) = this.putByte(name, if (value) 1 else 0)

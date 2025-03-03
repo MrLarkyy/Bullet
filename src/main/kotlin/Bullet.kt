@@ -63,10 +63,4 @@ object Bullet : AutoCloseable {
         server?.close()
     }
 
-    private fun testCreateRegistry(): CompoundTag {
-        val root = CompoundTag()
-
-        return root
-    }
-
 }
