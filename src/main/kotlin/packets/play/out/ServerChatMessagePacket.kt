@@ -5,6 +5,9 @@ import com.aznos.datatypes.UUIDType.writeUUID
 import com.aznos.packets.Packet
 import com.aznos.player.ChatMessage
 import com.aznos.player.ChatPosition
+import com.google.gson.Gson
+import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.util.UUID
 
 /**
@@ -15,12 +18,12 @@ import java.util.UUID
  * @param sender The UUID of the player who sent the message
  */
 class ServerChatMessagePacket(
-    message: ChatMessage,
+    message: TextComponent,
     position: ChatPosition,
     sender: UUID?
 ) : Packet(0x0E) {
     init {
-        wrapper.writeString(message.toJson())
+        wrapper.writeString(GsonComponentSerializer.gson().serialize(message))
         wrapper.writeByte(position.id)
         wrapper.writeUUID(sender ?: UUID(0, 0))
     }

@@ -16,6 +16,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("com.google.code.gson:gson:2.12.1")
     implementation("dev.dewy:nbt:1.5.1")
+    implementation("net.kyori:adventure-api:4.19.0")
+    implementation("net.kyori:adventure-text-serializer-gson:4.19.0")
 }
 
 detekt {
