@@ -3,9 +3,7 @@ package com.aznos.packets.play.out
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.UUIDType.writeUUID
 import com.aznos.packets.Packet
-import com.aznos.player.ChatMessage
 import com.aznos.player.ChatPosition
-import com.google.gson.Gson
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.util.UUID

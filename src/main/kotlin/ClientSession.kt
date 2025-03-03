@@ -11,7 +11,6 @@ import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.play.out.ServerChatMessagePacket
 import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
-import com.aznos.player.ChatMessage
 import com.aznos.player.ChatPosition
 import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream

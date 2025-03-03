@@ -15,7 +15,6 @@ import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.player.ChatMessage
 import com.aznos.player.GameMode
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
