@@ -50,11 +50,9 @@ class PacketHandler(
         if(event.isCancelled) return
 
         client.sendMessage(
-            ChatMessage.translate(
-                "chat.type.text",
-                ChatMessage.text(client.username!!),
-                ChatMessage.text(formattedMessage)
-            )
+            ChatMessage.Builder()
+                .text("<${client.username}> $formattedMessage")
+                .build()
         )
     }
 
