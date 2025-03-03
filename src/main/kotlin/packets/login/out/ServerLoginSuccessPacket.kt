@@ -3,7 +3,6 @@ package com.aznos.packets.login.out
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.UUIDType.writeUUID
 import com.aznos.packets.Packet
-import com.google.gson.JsonObject
 import java.util.UUID
 
 /**

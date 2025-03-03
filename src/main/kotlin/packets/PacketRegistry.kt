@@ -2,6 +2,7 @@ package com.aznos.packets
 
 import com.aznos.GameState
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
+import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
@@ -40,6 +41,7 @@ object PacketRegistry {
 
         //PLAY
         val playPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
+            this[0x03] = ClientChatMessagePacket::class.java
             this[0x10] = ClientKeepAlivePacket::class.java
         }
 

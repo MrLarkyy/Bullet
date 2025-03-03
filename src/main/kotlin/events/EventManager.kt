@@ -16,6 +16,7 @@ object EventManager {
      * @param eventType The type of event to listen for
      * @param listener The listener to register
      */
+    @Suppress("unused")
     fun <T : Event> register(eventType: Class<T>, listener: EventListener<T>) {
         listeners.computeIfAbsent(eventType) {
             mutableListOf()

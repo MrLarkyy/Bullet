@@ -10,7 +10,7 @@ import com.aznos.packets.Packet
  * @param y The Y position
  * @param z The Z position
  * @param yaw The player yaw (left-right)
- * @param pitch The player pitch (up-dpwn)
+ * @param pitch The player pitch (up-down)
  */
 class ServerPlayerPositionAndLookPacket(
     x: Double,

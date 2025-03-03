@@ -8,12 +8,14 @@ import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
+import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerJoinGamePacket
 import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
+import com.aznos.player.ChatMessage
 import com.aznos.player.GameMode
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
@@ -29,6 +31,31 @@ import java.util.UUID
 class PacketHandler(
     private val client: ClientSession
 ) {
+    /**
+     * Handles when a chat message is received
+     */
+    @PacketReceiver
+    fun onChatMessage(packet: ClientChatMessagePacket) {
+        val message = packet.message
+
+        if(message.length > 255) {
+            client.disconnect("Message too long")
+            return
+        }
+
+        val formattedMessage = message.replace('&', '§')
+
+        val event = PlayerChatEvent(client.username!!, formattedMessage)
+        EventManager.fire(event)
+        if(event.isCancelled) return
+
+        client.sendMessage(
+            ChatMessage.Builder()
+                .text("<${client.username}> $formattedMessage")
+                .build()
+        )
+    }
+
     /**
      * Handles when the client responds to the server keep alive packet to tell the server the client is still online
      */
@@ -83,10 +110,10 @@ class PacketHandler(
             Bullet.dimensionCodec!!,
             Bullet.MAX_PLAYERS,
             8,
-            false,
-            true,
-            false,
-            true
+            reducedDebugInfo = false,
+            enableRespawnScreen = true,
+            isDebug = false,
+            isFlat = true
         ))
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))
