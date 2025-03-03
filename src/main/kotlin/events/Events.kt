@@ -41,6 +41,14 @@ data class HandshakeEvent(val state: GameState, val protocol: Int) : Event()
  */
 data class PlayerHeartbeatEvent(val username: String) : Event()
 
+/**
+ * Called when a player sends a chat message
+ *
+ * @param username The username of the player that sent the message
+ * @param message The message that was sent
+ */
+data class PlayerChatEvent(val username: String, val message: String) : Event()
+
 //Modifiable events
 
 /**

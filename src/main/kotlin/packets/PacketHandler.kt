@@ -46,6 +46,10 @@ class PacketHandler(
             return
         }
 
+        val event = PlayerChatEvent(client.username!!, packet.message)
+        EventManager.fire(event)
+        if(event.isCancelled) return
+
         client.sendMessage(
             ChatMessage.translate(
                 "chat.type.text",
