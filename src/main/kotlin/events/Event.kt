@@ -6,5 +6,5 @@ package com.aznos.events
  * @property isCancelled Whether the event is cancelled
  */
 open class Event {
-    var isCancelled = false
+    var isCancelled: Boolean = false
 }

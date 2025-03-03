@@ -3,7 +3,6 @@ package com.aznos.packets
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
-import com.aznos.datatypes.UUIDType
 import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
@@ -34,8 +33,11 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
+        val event = PlayerHeartbeatEvent(client.username!!)
+        EventManager.fire(event)
+        if(event.isCancelled) return
+
         client.respondedToKeepAlive = true
-        EventManager.fire(PlayerHeartbeatEvent(client.username!!))
     }
 
     /**
@@ -47,7 +49,9 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
-        EventManager.fire(PlayerPreJoinEvent())
+        val preJoinEvent = PlayerPreJoinEvent()
+        EventManager.fire(preJoinEvent)
+        if(preJoinEvent.isCancelled) return
 
         if(client.protocol > Bullet.PROTOCOL) {
             client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
@@ -85,7 +89,11 @@ class PacketHandler(
         ))
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
-        EventManager.fire(PlayerJoinEvent(username))
+
+        val joinEvent = PlayerJoinEvent(client.username!!)
+        EventManager.fire(joinEvent)
+        if(joinEvent.isCancelled) return
+
         client.scheduleKeepAlive()
     }
 
@@ -105,6 +113,7 @@ class PacketHandler(
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
         val event = StatusRequestEvent(Bullet.MAX_PLAYERS, 0, Bullet.DESCRIPTION)
         EventManager.fire(event)
+        if(event.isCancelled) return
 
         val response = ServerStatusResponse(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
@@ -124,7 +133,9 @@ class PacketHandler(
         client.state = if(packet.state == 2) GameState.LOGIN else GameState.STATUS
         client.protocol = packet.protocol ?: -1
 
-        EventManager.fire(HandshakeEvent(client.state, client.protocol))
+        val event = HandshakeEvent(client.state, client.protocol)
+        EventManager.fire(event)
+        if(event.isCancelled) return
     }
 
     /**
