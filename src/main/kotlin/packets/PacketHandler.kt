@@ -4,8 +4,7 @@ import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
 import com.aznos.datatypes.UUIDType
-import com.aznos.events.EventManager
-import com.aznos.events.PlayerJoinEvent
+import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
@@ -36,6 +35,7 @@ class PacketHandler(
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
         client.respondedToKeepAlive = true
+        EventManager.fire(PlayerHeartbeatEvent(client.username!!))
     }
 
     /**
@@ -47,6 +47,8 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onLoginStart(packet: ClientLoginStartPacket) {
+        EventManager.fire(PlayerPreJoinEvent())
+
         if(client.protocol > Bullet.PROTOCOL) {
             client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
             return
@@ -101,14 +103,16 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
+        val onlinePlayers = 0
         val response = ServerStatusResponse(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
-            ServerStatusResponse.Players(Bullet.MAX_PLAYERS, 0),
+            ServerStatusResponse.Players(Bullet.MAX_PLAYERS, onlinePlayers),
             Bullet.DESCRIPTION,
             false
         )
 
         client.sendPacket(ServerStatusResponsePacket(Json.encodeToString(response)))
+        EventManager.fire(StatusRequestEvent(Bullet.MAX_PLAYERS, onlinePlayers, Bullet.DESCRIPTION))
     }
 
     /**
@@ -118,6 +122,8 @@ class PacketHandler(
     fun onHandshake(packet: HandshakePacket) {
         client.state = if(packet.state == 2) GameState.LOGIN else GameState.STATUS
         client.protocol = packet.protocol ?: -1
+
+        EventManager.fire(HandshakeEvent(client.state, client.protocol))
     }
 
     /**

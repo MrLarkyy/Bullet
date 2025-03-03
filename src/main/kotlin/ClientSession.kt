@@ -2,6 +2,9 @@ package com.aznos
 
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
+import com.aznos.events.EventManager
+import com.aznos.events.PlayerPreJoinEvent
+import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
@@ -91,6 +94,7 @@ class ClientSession(
             sendPacket(ServerLoginDisconnectPacket(message))
         }
 
+        EventManager.fire(PlayerQuitEvent(username!!))
         close()
     }
 
