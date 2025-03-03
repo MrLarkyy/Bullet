@@ -3,18 +3,20 @@ package com.aznos.packets
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
-import com.aznos.datatypes.UUIDType
+import com.aznos.packets.configuration.out.ServerConfigFinishPacket
+import com.aznos.packets.configuration.out.ServerConfigRegistryData
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerJoinGamePacket
-import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
+import com.aznos.packets.play.out.ServerSyncPlayerPosition
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.player.GameMode
+import dev.dewy.nbt.tags.collection.CompoundTag
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
@@ -63,23 +65,99 @@ class PacketHandler(
         client.uuid = uuid
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
+        client.state = GameState.CONFIGURATION
+
+        client.sendPacket(ServerConfigRegistryData("minecraft:dimension_type", listOf(
+            ServerConfigRegistryData.Entry("minecraft:overworld", CompoundTag().apply {
+                putByte("has_skylight", 0)
+                putByte("has_ceiling", 0)
+                putByte("ultrawarm", 0)
+                putByte("natural", 0)
+                putDouble("coordinate_scale", 1.0)
+                putByte("bed_works", 0)
+                putByte("respawn_anchor_works", 0)
+                putInt("min_y", -64)
+                putInt("height", 320)
+                putInt("logical_height", 0)
+                putString("infiniburn", "#minecraft:infiniburn_overworld")
+                putString("effects", "minecraft:overworld")
+                putFloat("ambient_light", 0f)
+                putByte("piglin_safe", 0)
+                putByte("has_raids", 0)
+                putInt("monster_spawn_light_level", 0)
+                putInt("monster_spawn_block_light_limit", 0)
+            })
+        )))
+
+        client.sendPacket(ServerConfigRegistryData("minecraft:worldgen/biome", listOf(
+            ServerConfigRegistryData.Entry("minecraft:plains", CompoundTag().apply {
+                putByte("has_precipitation", 0)
+                putFloat("temperature", 0f)
+                putFloat("downfall", 0f)
+                put<CompoundTag>("effects", CompoundTag().apply {
+                    putInt("fog_color", 0)
+                    putInt("water_color", 0)
+                    putInt("water_fog_color", 0)
+                    putInt("sky_color", 0)
+                })
+            })
+        )))
+
+        client.sendPacket(ServerConfigRegistryData("minecraft:wolf_variant", listOf(
+            ServerConfigRegistryData.Entry("minecraft:black", CompoundTag().apply {
+                putString("angry_texture", "minecraft:entity/wolf/wolf_black_angry")
+                putString("biomes", "minecraft:plains")
+                putString("tame_texture", "minecraft:entity/wolf/wolf_black_tame")
+                putString("wild_texture", "minecraft:entity/wolf/wolf_black")
+            })
+        )))
+
+        client.sendPacket(ServerConfigRegistryData("minecraft:painting_variant", listOf(
+            ServerConfigRegistryData.Entry("minecraft:alban", CompoundTag().apply {
+                putString("asset_id", "minecraft:alban")
+                putInt("height", 1)
+                putInt("width", 1)
+                putString("title", "gg")
+                putString("author", "gg")
+            })
+        )))
+
+        client.sendPacket(ServerConfigRegistryData("minecraft:damage_type", listOf(
+            ServerConfigRegistryData.Entry("minecraft:in_fire", CompoundTag().apply {
+                putString("effects", "burning")
+                putFloat("exhaustion", 0.1f)
+                putString("scaling", "when_caused_by_living_non_player")
+                putString("message_id", "inFire")
+            })
+        )))
+
+        client.sendPacket(ServerConfigRegistryData("minecraft:damage_type", listOf(
+            ServerConfigRegistryData.Entry("minecraft:campfire", CompoundTag().apply {
+                putString("effects", "burning")
+                putFloat("exhaustion", 0.1f)
+                putString("scaling", "when_caused_by_living_non_player")
+                putString("message_id", "inFire")
+            })
+        )))
+        
+        client.sendPacket(ServerConfigFinishPacket())
         client.state = GameState.PLAY
 
         client.sendPacket(ServerJoinGamePacket(
             0,
             false,
-            GameMode.CREATIVE,
-            "minecraft:overworld",
-            Bullet.dimensionCodec!!,
-            Bullet.MAX_PLAYERS,
+            listOf("minecraft:overworld"),
+            8,
             8,
             false,
             true,
-            false,
-            true
+            0,
+            "minecraft:overworld",
+            GameMode.CREATIVE,
+            false
         ))
 
-        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        client.sendPacket(ServerSyncPlayerPosition(0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0f, 90f))
         client.scheduleKeepAlive()
     }
 
