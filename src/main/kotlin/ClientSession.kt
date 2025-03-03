@@ -9,8 +9,11 @@ import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
+import com.aznos.packets.play.out.ServerChatMessagePacket
 import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
+import com.aznos.player.ChatMessage
+import com.aznos.player.ChatPosition
 import java.io.DataInputStream
 import java.io.IOException
 import java.net.Socket
@@ -80,6 +83,15 @@ class ClientSession(
                 respondedToKeepAlive = true
             }
         }, 10.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
+    }
+
+    /**
+     * Sends a chat message to the client
+     *
+     * @param message The message to be sent to the client
+     */
+    fun sendMessage(message: ChatMessage) {
+        sendPacket(ServerChatMessagePacket(message, ChatPosition.CHAT, null))
     }
 
     /**

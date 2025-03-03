@@ -15,6 +15,7 @@ import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
+import com.aznos.player.ChatMessage
 import com.aznos.player.GameMode
 import kotlinx.serialization.json.Json
 import packets.handshake.HandshakePacket
@@ -35,7 +36,23 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onChatMessage(packet: ClientChatMessagePacket) {
-        println("<${client.username}>: ${packet.message}")
+        if(packet.message.length > 255) {
+            client.disconnect("Message too long")
+            return
+        }
+
+        if(packet.message.contains("\u00a7")) {
+            client.disconnect("Illegal characters in message")
+            return
+        }
+
+        client.sendMessage(
+            ChatMessage.translate(
+                "chat.type.text",
+                ChatMessage.text(client.username),
+                ChatMessage.text(packet.message)
+            )
+        )
     }
 
     /**
