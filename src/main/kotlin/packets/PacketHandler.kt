@@ -4,6 +4,8 @@ import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
 import com.aznos.datatypes.UUIDType
+import com.aznos.events.EventManager
+import com.aznos.events.PlayerJoinEvent
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
@@ -81,6 +83,7 @@ class PacketHandler(
         ))
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        EventManager.fire(PlayerJoinEvent(username))
         client.scheduleKeepAlive()
     }
 
