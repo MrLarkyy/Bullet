@@ -39,7 +39,7 @@ class ServerChunkPacket(
         }
 
         // Chunk section data.
-        val sectionData = createGrassChunkSection()
+        val sectionData = createStoneChunkSection()
         wrapper.writeVarInt(sectionData.size)
         wrapper.write(sectionData)
 
@@ -60,7 +60,7 @@ class ServerChunkPacket(
         return result
     }
 
-    private fun createGrassChunkSection(): ByteArray {
+    private fun createStoneChunkSection(): ByteArray {
         val bitsPerBlock = 4
         val totalBlocks = 16 * 16 * 16
 
@@ -94,7 +94,7 @@ class ServerChunkPacket(
         baos.write(bitsPerBlock)
         baos.writeVarInt(2)
         baos.writeVarInt(0)
-        baos.writeVarInt(8)
+        baos.writeVarInt(1) //The block
         baos.writeVarInt(packed.size)
 
         for(l in packed) {
