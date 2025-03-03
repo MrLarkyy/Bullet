@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream
 
 /**
  * A chunk sent by the server to the client
- * Right now it generates a 16x1x16 chunk with grass on the bottom layer and air on the rest
+ * Right now it generates a 16x1x16 chunk with stone on the bottom layer and air on the rest
  *
  * @param x The chunk x coordinate.
  * @param z The chunk z coordinate.

@@ -89,7 +89,7 @@ class PacketHandler(
             true
         ))
 
-        client.sendPacket(ServerPlayerPositionAndLookPacket(0.0, 0.0, 0.0, 0f, 0f))
+        client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))
 
         val joinEvent = PlayerJoinEvent(client.username!!)
         EventManager.fire(joinEvent)
