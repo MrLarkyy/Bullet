@@ -36,25 +36,24 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onChatMessage(packet: ClientChatMessagePacket) {
-        if(packet.message.length > 255) {
+        val message = packet.message
+
+        if(message.length > 255) {
             client.disconnect("Message too long")
             return
         }
 
-        if(packet.message.contains("\u00a7")) {
-            client.disconnect("Illegal characters in message")
-            return
-        }
+        val formattedMessage = message.replace('&', '§')
 
-        val event = PlayerChatEvent(client.username!!, packet.message)
+        val event = PlayerChatEvent(client.username!!, formattedMessage)
         EventManager.fire(event)
         if(event.isCancelled) return
 
         client.sendMessage(
             ChatMessage.translate(
                 "chat.type.text",
-                ChatMessage.text(client.username),
-                ChatMessage.text(packet.message)
+                ChatMessage.text(client.username!!),
+                ChatMessage.text(formattedMessage)
             )
         )
     }
