@@ -103,16 +103,17 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
-        val onlinePlayers = 0
+        val event = StatusRequestEvent(Bullet.MAX_PLAYERS, 0, Bullet.DESCRIPTION)
+        EventManager.fire(event)
+
         val response = ServerStatusResponse(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
-            ServerStatusResponse.Players(Bullet.MAX_PLAYERS, onlinePlayers),
-            Bullet.DESCRIPTION,
+            ServerStatusResponse.Players(event.maxPlayers, event.onlinePlayers),
+            event.motd,
             false
         )
 
         client.sendPacket(ServerStatusResponsePacket(Json.encodeToString(response)))
-        EventManager.fire(StatusRequestEvent(Bullet.MAX_PLAYERS, onlinePlayers, Bullet.DESCRIPTION))
     }
 
     /**
