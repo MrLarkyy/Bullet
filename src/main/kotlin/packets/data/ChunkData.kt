@@ -17,23 +17,6 @@ data class ChunkData(
         val data: CompoundTag
     )
 
-    companion object {
-        fun write(wrapper: DataOutputStream, chunkData: ChunkData, registry: TagTypeRegistry) {
-            chunkData.heightMaps.write(wrapper, 0, registry)
-
-            wrapper.writeVarInt(chunkData.data.size)
-            wrapper.write(chunkData.data)
-
-            wrapper.writeVarInt(chunkData.blockEntities.size)
-            for(be in chunkData.blockEntities) {
-                wrapper.writeVarInt(be.packedXZ)
-                wrapper.writeShort(be.y.toInt())
-                wrapper.writeVarInt(be.type)
-                be.data.write(wrapper, 0, registry)
-            }
-        }
-    }
-
     override fun equals(other: Any?): Boolean {
         if(this === other) return true
         if(javaClass != other?.javaClass) return false
@@ -52,5 +35,20 @@ data class ChunkData(
         result = 31 * result + data.contentHashCode()
         result = 31 * result + blockEntities.hashCode()
         return result
+    }
+}
+
+fun writeChunkData(wrapper: DataOutputStream, chunkData: ChunkData, registry: TagTypeRegistry) {
+    chunkData.heightMaps.write(wrapper, 0, registry)
+
+    wrapper.writeVarInt(chunkData.data.size)
+    wrapper.write(chunkData.data)
+
+    wrapper.writeVarInt(chunkData.blockEntities.size)
+    for(be in chunkData.blockEntities) {
+        wrapper.writeVarInt(be.packedXZ)
+        wrapper.writeShort(be.y.toInt())
+        wrapper.writeVarInt(be.type)
+        be.data.write(wrapper, 0, registry)
     }
 }
