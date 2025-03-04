@@ -158,12 +158,14 @@ class PacketHandler(
         heightmapTag.putLongArray("MOTION_BLOCKING", ChunkData.createHeightmapData())
         heightmapTag.putLongArray("WORLD_SURFACE", ChunkData.createHeightmapData())
 
+        val sectionData = ChunkData.createStoneChunkSection()
+
         client.sendPacket(ServerLevelChunkWithLightPacket(
             0,
             0,
             ChunkData(
                 heightmapTag,
-                byteArrayOf(),
+                sectionData,
                 emptyList()
             ),
             LightData(
