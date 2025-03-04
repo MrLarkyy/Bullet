@@ -1,7 +1,5 @@
 package com.aznos.packets.data
 
-import com.aznos.datatypes.VarInt.writeVarInt
-import java.io.DataOutputStream
 import java.util.*
 
 data class LightData(
@@ -13,30 +11,29 @@ data class LightData(
     val blockLightArrays: List<ByteArray>
 )
 
-fun writeBitSet(out: DataOutputStream, bitSet: BitSet) {
-    val longs = bitSet.toLongArray()
-    out.writeVarInt(longs.size)
+fun buildLightData(): LightData {
+    val sections = 24
+    val skyLightMask = BitSet()
+    val blockLightMask = BitSet()
 
-    for(l in longs) {
-        out.writeLong(l)
-    }
-}
-
-fun writeLightData(out: DataOutputStream, lightData: LightData) {
-    writeBitSet(out, lightData.skyLightMask)
-    writeBitSet(out, lightData.blockLightMask)
-    writeBitSet(out, lightData.emptySkyLightMask)
-    writeBitSet(out, lightData.emptyBlockLightMask)
-
-    out.writeVarInt(lightData.skyLightArrays.size)
-    for(array in lightData.skyLightArrays) {
-        out.writeVarInt(array.size)
-        out.write(array)
+    for(i in 0 until sections) {
+        skyLightMask.set(i)
+        blockLightMask.set(i)
     }
 
-    out.writeVarInt(lightData.blockLightArrays.size)
-    for(array in lightData.blockLightArrays) {
-        out.writeVarInt(array.size)
-        out.write(array)
+    val emptySkyLightMask = BitSet()
+    val emptyBlockLightMask = BitSet()
+
+    val skyLightArrays = List(sections) {
+        ByteArray(2048) { 0xFF.toByte() }
     }
+
+    val blockLightArrays = List(sections) {
+        ByteArray(2048) { 0xFF.toByte() }
+    }
+
+    return LightData(
+        skyLightMask, blockLightMask, emptySkyLightMask,
+        emptyBlockLightMask, skyLightArrays, blockLightArrays
+    )
 }

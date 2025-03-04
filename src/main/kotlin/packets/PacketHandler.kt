@@ -6,8 +6,8 @@ import com.aznos.GameState
 import com.aznos.events.*
 import com.aznos.packets.configuration.out.ServerConfigFinishPacket
 import com.aznos.packets.data.ChunkData
-import com.aznos.packets.data.LightData
 import com.aznos.packets.data.ServerStatusResponse
+import com.aznos.packets.data.buildLightData
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientChatMessagePacket
@@ -125,30 +125,27 @@ class PacketHandler(
         client.sendPacket(ServerSyncPlayerPosition(0, 8.5, 0.0, 8.5, 0.0, 5.0, 0.0, 0f, 90f))
         client.sendPacket(ServerSetChunkCacheCenterPacket())
 
-        val heightmapTag = CompoundTag()
-        heightmapTag.putLongArray("MOTION_BLOCKING", ChunkData.createHeightmapData())
-        heightmapTag.putLongArray("WORLD_SURFACE", ChunkData.createHeightmapData())
+        val heightmapTag = CompoundTag().apply {
+            putLongArray("MOTION_BLOCKING", ChunkData.createHeightmapData())
+            putLongArray("WORLD_SURFACE", ChunkData.createHeightmapData())
+        }
 
-        val sectionData = ChunkData.createStoneChunkSection()
+        val chunkDataBytes = ChunkData.buildChunkData()
+        val chunkData = ChunkData(
+            heightMaps = heightmapTag,
+            data = chunkDataBytes,
+            blockEntities = emptyList()
+        )
 
+        val lightData = buildLightData()
         client.sendPacket(ServerLevelChunkWithLightPacket(
-            0,
-            0,
-            ChunkData(
-                heightmapTag,
-                sectionData,
-                emptyList()
-            ),
-            LightData(
-                BitSet(),
-                BitSet(),
-                BitSet(),
-                BitSet(),
-                emptyList(),
-                emptyList()
-            ),
+            x = 0,
+            z = 0,
+            chunkData,
+            lightData,
             TagTypeRegistry()
         ))
+
         client.scheduleKeepAlive()
     }
 
