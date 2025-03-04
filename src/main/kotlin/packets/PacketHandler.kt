@@ -5,7 +5,6 @@ import com.aznos.ClientSession
 import com.aznos.GameState
 import com.aznos.events.*
 import com.aznos.packets.configuration.out.ServerConfigFinishPacket
-import com.aznos.packets.configuration.out.ServerConfigRegistryData
 import com.aznos.packets.data.ChunkData
 import com.aznos.packets.data.LightData
 import com.aznos.packets.data.ServerStatusResponse
@@ -22,7 +21,6 @@ import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.player.GameMode
-import com.aznos.registry.Registries
 import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
 import kotlinx.serialization.json.Json
@@ -95,43 +93,16 @@ class PacketHandler(
         EventManager.fire(preJoinEvent)
         if(preJoinEvent.isCancelled) return
 
-        if(client.protocol > Bullet.PROTOCOL) {
-            client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
-            return
-        } else if(client.protocol < Bullet.PROTOCOL) {
-            client.disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
-            return
-        }
+        client.isClientValid(packet)
 
-        val username = packet.username
-        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
-            client.disconnect("Invalid username")
-            return
-        }
-
-        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
-        client.username = username
+        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:${packet.username}").toByteArray())
+        client.username = packet.username
         client.uuid = uuid
 
-        client.sendPacket(ServerLoginSuccessPacket(uuid, username))
+        client.sendPacket(ServerLoginSuccessPacket(uuid, packet.username))
         client.state = GameState.CONFIGURATION
 
-        client.sendPacket(ServerConfigRegistryData(Registries.dimension_type))
-        client.sendPacket(ServerConfigRegistryData(Registries.biomes))
-        client.sendPacket(ServerConfigRegistryData(Registries.wolf_variant))
-        client.sendPacket(ServerConfigRegistryData(Registries.damage_type))
-
-        client.sendPacket(
-            ServerConfigRegistryData("minecraft:painting_variant", listOf(
-            ServerConfigRegistryData.RawEntry("minecraft:alban", CompoundTag().apply {
-                putString("asset_id", "minecraft:alban")
-                putInt("height", 1)
-                putInt("width", 1)
-                putString("title", "gg")
-                putString("author", "gg")
-            })
-        ))
-        )
+        client.sendRegistries()
 
         client.sendPacket(ServerConfigFinishPacket())
         client.state = GameState.PLAY
