@@ -6,6 +6,8 @@ import com.aznos.GameState
 import com.aznos.events.*
 import com.aznos.packets.configuration.out.ServerConfigFinishPacket
 import com.aznos.packets.configuration.out.ServerConfigRegistryData
+import com.aznos.packets.data.ChunkData
+import com.aznos.packets.data.LightData
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
@@ -13,6 +15,7 @@ import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
 import com.aznos.packets.play.out.ServerGameEvent
 import com.aznos.packets.play.out.ServerJoinGamePacket
+import com.aznos.packets.play.out.ServerLevelChunkWithLightPacket
 import com.aznos.packets.play.out.ServerSetChunkCacheCenterPacket
 import com.aznos.packets.play.out.ServerSyncPlayerPosition
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
@@ -20,15 +23,15 @@ import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.player.GameMode
 import com.aznos.registry.Registries
+import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
-import jdk.jfr.internal.Bits.putInt
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
-import java.util.UUID
+import java.util.*
 
 /**
  * Handles all incoming packets by dispatching them to the appropriate handler methods
@@ -150,6 +153,24 @@ class PacketHandler(
         client.sendPacket(ServerGameEvent(13, 0f))
         client.sendPacket(ServerSyncPlayerPosition(0, 8.5, 0.0, 8.5, 0.0, 5.0, 0.0, 0f, 90f))
         client.sendPacket(ServerSetChunkCacheCenterPacket())
+        client.sendPacket(ServerLevelChunkWithLightPacket(
+            0,
+            0,
+            ChunkData(
+                CompoundTag(),
+                byteArrayOf(),
+                emptyList()
+            ),
+            LightData(
+                BitSet(),
+                BitSet(),
+                BitSet(),
+                BitSet(),
+                emptyList(),
+                emptyList()
+            ),
+            TagTypeRegistry()
+        ))
         client.scheduleKeepAlive()
     }
 
