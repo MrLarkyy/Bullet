@@ -153,11 +153,16 @@ class PacketHandler(
         client.sendPacket(ServerGameEvent(13, 0f))
         client.sendPacket(ServerSyncPlayerPosition(0, 8.5, 0.0, 8.5, 0.0, 5.0, 0.0, 0f, 90f))
         client.sendPacket(ServerSetChunkCacheCenterPacket())
+
+        val heightmapTag = CompoundTag()
+        heightmapTag.putLongArray("MOTION_BLOCKING", ChunkData.createHeightmapData())
+        heightmapTag.putLongArray("WORLD_SURFACE", ChunkData.createHeightmapData())
+
         client.sendPacket(ServerLevelChunkWithLightPacket(
             0,
             0,
             ChunkData(
-                CompoundTag(),
+                heightmapTag,
                 byteArrayOf(),
                 emptyList()
             ),

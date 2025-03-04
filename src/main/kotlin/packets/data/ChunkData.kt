@@ -36,6 +36,18 @@ data class ChunkData(
         result = 31 * result + blockEntities.hashCode()
         return result
     }
+
+    companion object {
+        fun createHeightmapData(): LongArray {
+            val result = LongArray(37) { 0L }
+            for(i in 0 until 256) {
+                val longIndex = i / 7
+                val offset = (i % 7) * 9
+                result[longIndex] = result[longIndex] or (2L shl offset)
+            }
+            return result
+        }
+    }
 }
 
 fun writeChunkData(wrapper: DataOutputStream, chunkData: ChunkData, registry: TagTypeRegistry) {
