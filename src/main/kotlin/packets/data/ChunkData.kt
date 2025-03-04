@@ -1,6 +1,9 @@
 package com.aznos.packets.data
 
+import com.aznos.datatypes.VarInt.writeVarInt
+import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
+import java.io.DataOutputStream
 
 data class ChunkData(
     val heightMaps: CompoundTag,
@@ -13,6 +16,23 @@ data class ChunkData(
         val type: Int,
         val data: CompoundTag
     )
+
+    companion object {
+        fun write(wrapper: DataOutputStream, chunkData: ChunkData, registry: TagTypeRegistry) {
+            chunkData.heightMaps.write(wrapper, 0, registry)
+
+            wrapper.writeVarInt(chunkData.data.size)
+            wrapper.write(chunkData.data)
+
+            wrapper.writeVarInt(chunkData.blockEntities.size)
+            for(be in chunkData.blockEntities) {
+                wrapper.writeVarInt(be.packedXZ)
+                wrapper.writeShort(be.y.toInt())
+                wrapper.writeVarInt(be.type)
+                be.data.write(wrapper, 0, registry)
+            }
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         if(this === other) return true

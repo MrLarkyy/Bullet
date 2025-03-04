@@ -1,6 +1,7 @@
 package com.aznos.packets.play.out
 
 import com.aznos.packets.Packet
+import com.aznos.packets.data.ChunkData
 
 /**
  * A packet from the server -> client that sends when a chunk comes into
