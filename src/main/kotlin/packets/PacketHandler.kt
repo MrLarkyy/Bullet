@@ -55,7 +55,7 @@ class PacketHandler(
 
         for(otherPlayer in Bullet.players) {
             if(otherPlayer != player) {
-                client.sendPacket(ServerEntityMovementPacket(player.entityID))
+                otherPlayer.clientSession.sendPacket(ServerEntityMovementPacket(player.entityID))
             }
         }
     }
@@ -71,7 +71,7 @@ class PacketHandler(
 
         for(otherPlayer in Bullet.players) {
             if(otherPlayer != player) {
-                client.sendPacket(ServerEntityRotationPacket(
+                otherPlayer.clientSession.sendPacket(ServerEntityRotationPacket(
                     player.entityID,
                     player.location.yaw,
                     player.location.pitch,
