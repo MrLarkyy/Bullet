@@ -14,6 +14,8 @@ import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
 import com.aznos.entity.player.data.ChatPosition
 import com.aznos.entity.player.data.GameMode
+import com.aznos.packets.data.PlayerInfo
+import com.aznos.packets.play.out.ServerPlayerInfoPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream
@@ -108,6 +110,22 @@ class ClientSession(
             sendPacket(ServerLoginDisconnectPacket(message))
         }
 
+        for(session in Bullet.players) {
+            session.clientSession.sendPacket(
+                ServerPlayerInfoPacket(
+                    4,
+                    listOf(
+                        PlayerInfo(
+                            player.uuid,
+                            player.username
+                        )
+                    )
+                )
+            )
+        }
+
+        Bullet.players.remove(player)
+
         EventManager.fire(PlayerQuitEvent(player.username))
         close()
     }
@@ -126,6 +144,21 @@ class ClientSession(
         for(otherPlayer in Bullet.players) {
             if(otherPlayer.clientSession != this) {
                 otherPlayer.clientSession.sendPacket(
+                    ServerPlayerInfoPacket(
+                        0,
+                        listOf(
+                            PlayerInfo(
+                                player.uuid,
+                                player.username,
+                                gameMode = player.gameMode,
+                                ping = 50,
+                                hasDisplayName = false
+                            )
+                        )
+                    )
+                )
+
+                otherPlayer.clientSession.sendPacket(
                     ServerSpawnPlayerPacket(
                         player.entityID,
                         player.uuid,
@@ -134,6 +167,21 @@ class ClientSession(
                         player.location.z,
                         player.location.yaw,
                         player.location.pitch
+                    )
+                )
+
+                sendPacket(
+                    ServerPlayerInfoPacket(
+                        0,
+                        listOf(
+                            PlayerInfo(
+                                otherPlayer.uuid,
+                                otherPlayer.username,
+                                gameMode = otherPlayer.gameMode,
+                                ping = 50,
+                                hasDisplayName = false
+                            )
+                        )
                     )
                 )
 
