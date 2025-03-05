@@ -4,6 +4,7 @@ import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.entity.player.Player
 import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
@@ -15,7 +16,17 @@ import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.player.GameMode
+import com.aznos.entity.player.data.GameMode
+import com.aznos.entity.player.data.Location
+import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
+import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
+import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
+import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
+import com.aznos.packets.play.out.ServerSpawnPlayerPacket
+import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
+import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
+import com.aznos.packets.play.out.movement.ServerEntityPositionPacket
+import com.aznos.packets.play.out.movement.ServerEntityRotationPacket
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -29,10 +40,119 @@ import java.util.UUID
  *
  * @property client The clients session
  */
-@Suppress("UnusedParameter")
+@Suppress("UnusedParameter", "TooManyFunctions")
 class PacketHandler(
     private val client: ClientSession
 ) {
+    /**
+     * Every 20 ticks the client will send an empty movement packet telling the server if the
+     * client is on the ground or not
+     */
+    @PacketReceiver
+    fun onPlayerMovement(packet: ClientPlayerMovement) {
+        val player = client.player
+        player.onGround = packet.onGround
+
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(ServerEntityMovementPacket(player.entityID))
+            }
+        }
+    }
+
+    /**
+     * Handles when a player rotates to a new yaw and pitch
+     */
+    @PacketReceiver
+    fun onPlayerRotation(packet: ClientPlayerRotation) {
+        val player = client.player
+        player.location = Location(player.location.x, player.location.y, player.location.z, packet.yaw, packet.pitch)
+        player.onGround = packet.onGround
+
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(ServerEntityRotationPacket(
+                    player.entityID,
+                    player.location.yaw,
+                    player.location.pitch,
+                    player.onGround
+                ))
+            }
+        }
+    }
+
+    /**
+     * Handles when a player moves to a new position and rotation axis at the same time
+     */
+    @PacketReceiver
+    fun onPlayerPositionAndRotation(packet: ClientPlayerPositionAndRotation) {
+        val player = client.player
+        val lastLocation = player.location
+
+        val (deltaX, deltaY, deltaZ) = calculateDeltas(
+            packet.x,
+            packet.feetY,
+            packet.z,
+            lastLocation.x,
+            lastLocation.y,
+            lastLocation.z
+        )
+
+        player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
+        player.onGround = packet.onGround
+
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerEntityPositionAndRotationPacket(
+                        player.entityID,
+                        deltaX,
+                        deltaY,
+                        deltaZ,
+                        player.location.yaw,
+                        player.location.pitch,
+                        player.onGround
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Handles when a player moves to a new position
+     */
+    @PacketReceiver
+    fun onPlayerPosition(packet: ClientPlayerPositionPacket) {
+        val player = client.player
+        val lastLocation = player.location
+
+        val (deltaX, deltaY, deltaZ) = calculateDeltas(
+            packet.x,
+            packet.feetY,
+            packet.z,
+            lastLocation.x,
+            lastLocation.y,
+            lastLocation.z
+        )
+
+        player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
+        player.onGround = packet.onGround
+
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerEntityPositionPacket(
+                        player.entityID,
+                        deltaX,
+                        deltaY,
+                        deltaZ,
+                        player.onGround
+                    )
+                )
+            }
+        }
+    }
+
     /**
      * Handles when a chat message is received
      */
@@ -47,13 +167,13 @@ class PacketHandler(
 
         val formattedMessage = message.replace('&', '§')
 
-        val event = PlayerChatEvent(client.username!!, formattedMessage)
+        val event = PlayerChatEvent(client.player.username, formattedMessage)
         EventManager.fire(event)
         if(event.isCancelled) return
 
         val textComponent = Component.text()
             .append(Component.text().content("<").color(NamedTextColor.GRAY))
-            .append(Component.text().content(client.username!!).color(TextColor.color(0x55FFFF)))
+            .append(Component.text().content(client.player.username).color(TextColor.color(0x55FFFF)))
             .append(Component.text().content("> ").color(NamedTextColor.GRAY))
             .append(Component.text().content(formattedMessage).color(TextColor.color(0xFFFFFF)))
             .build()
@@ -66,7 +186,7 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
-        val event = PlayerHeartbeatEvent(client.username!!)
+        val event = PlayerHeartbeatEvent(client.player.username)
         EventManager.fire(event)
         if(event.isCancelled) return
 
@@ -87,48 +207,53 @@ class PacketHandler(
         if(preJoinEvent.isCancelled) return
 
         if(client.protocol > Bullet.PROTOCOL) {
-            client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
+            client.disconnect("Please downgrade your Minecraft version to " + Bullet.VERSION)
             return
         } else if(client.protocol < Bullet.PROTOCOL) {
-            client.disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
+            client.disconnect("Your client is outdated, please upgrade to Minecraft version " + Bullet.VERSION)
             return
         }
 
         val username = packet.username
-        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
+        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) {
             client.disconnect("Invalid username")
             return
         }
 
         val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
-        client.username = username
-        client.uuid = uuid
+        val player = initializePlayer(username, uuid)
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
         client.state = GameState.PLAY
 
-        client.sendPacket(ServerJoinGamePacket(
-            0,
-            false,
-            GameMode.CREATIVE,
-            "minecraft:overworld",
-            Bullet.dimensionCodec!!,
-            Bullet.MAX_PLAYERS,
-            8,
-            reducedDebugInfo = false,
-            enableRespawnScreen = true,
-            isDebug = false,
-            isFlat = true
-        ))
+        client.sendPacket(
+            ServerJoinGamePacket(
+                player.entityID,
+                false,
+                player.gameMode,
+                "minecraft:overworld",
+                Bullet.dimensionCodec!!,
+                Bullet.MAX_PLAYERS,
+                8,
+                reducedDebugInfo = false,
+                enableRespawnScreen = true,
+                isDebug = false,
+                isFlat = true
+            )
+        )
 
-        client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))
+        client.sendPacket(ServerPlayerPositionAndLookPacket(player.location))
 
-        val joinEvent = PlayerJoinEvent(client.username!!)
+        val joinEvent = PlayerJoinEvent(client.player.username)
         EventManager.fire(joinEvent)
         if(joinEvent.isCancelled) return
 
+        Bullet.players.add(player)
+        client.sendPlayerSpawnPacket()
         client.scheduleKeepAlive()
         client.sendPacket(ServerChunkPacket(0, 0))
+
+        sendSpawnPlayerPackets(player)
     }
 
     /**
@@ -184,6 +309,62 @@ class PacketHandler(
                 if(params.size == 1 && params[0] == packet.javaClass) {
                     method.invoke(this, packet)
                 }
+            }
+        }
+    }
+
+    private fun calculateDeltas(
+        currentX: Double, currentY: Double, currentZ: Double,
+        lastX: Double, lastY: Double, lastZ: Double
+    ): Triple<Short, Short, Short> {
+        val deltaX = ((currentX - lastX) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaY = ((currentY - lastY) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaZ = ((currentZ - lastZ) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        return Triple(deltaX, deltaY, deltaZ)
+    }
+
+    private fun initializePlayer(username: String, uuid: UUID): Player {
+        val player = Player(client)
+        player.username = username
+        player.uuid = uuid
+        player.location = Location(8.5, 2.0, 8.5, 0f, 0f)
+        player.gameMode = GameMode.CREATIVE
+        player.onGround = false
+
+        client.player = player
+        return player
+    }
+
+    private fun sendSpawnPlayerPackets(player: Player) {
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        player.entityID,
+                        player.uuid,
+                        player.location.x,
+                        player.location.y,
+                        player.location.z,
+                        player.location.yaw,
+                        player.location.pitch
+                    )
+                )
+            }
+        }
+
+        for(existingPlayer in Bullet.players) {
+            if(existingPlayer != player) {
+                client.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        existingPlayer.entityID,
+                        existingPlayer.uuid,
+                        existingPlayer.location.x,
+                        existingPlayer.location.y,
+                        existingPlayer.location.z,
+                        existingPlayer.location.yaw,
+                        existingPlayer.location.pitch
+                    )
+                )
             }
         }
     }

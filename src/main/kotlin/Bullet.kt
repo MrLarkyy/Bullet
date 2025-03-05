@@ -1,9 +1,13 @@
 package com.aznos
 
+import com.aznos.entity.player.Player
 import com.google.gson.JsonParser
 import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.io.InputStreamReader
+import java.net.BindException
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
@@ -17,8 +21,11 @@ object Bullet : AutoCloseable {
     const val MAX_PLAYERS: Int = 20
     const val DESCRIPTION: String = "§6Runs as fast as a bullet"
 
+    val logger: Logger = LogManager.getLogger()
+
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
+    val players = mutableListOf<Player>()
 
     var dimensionCodec: CompoundTag? = null
 
@@ -29,8 +36,13 @@ object Bullet : AutoCloseable {
      * @param port - The port the server will run on, this defaults at 25565
      */
     fun createServer(host: String, port: Int = 25565) {
-        server = ServerSocket().apply {
-            bind(InetSocketAddress(host, port))
+        try {
+            server = ServerSocket().apply {
+                bind(InetSocketAddress(host, port))
+            }
+        } catch(e: BindException) {
+            logger.error("Failed to bind to $host:$port, is the address already in use?")
+            return
         }
 
         val reader = javaClass.getResourceAsStream("/codec.json")?.let {
@@ -40,7 +52,7 @@ object Bullet : AutoCloseable {
         val parsed = JsonParser.parseReader(reader).asJsonObject
         dimensionCodec = CompoundTag().fromJson(parsed, 0, TagTypeRegistry())
 
-        println("Bullet server started at $host:$port")
+        logger.info("Bullet server started at $host:$port")
 
         while(!isClosed()) {
             val client = server?.accept()
