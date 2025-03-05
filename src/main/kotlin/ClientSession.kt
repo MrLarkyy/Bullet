@@ -19,7 +19,9 @@ import com.aznos.packets.play.out.ServerPlayerInfoPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream
+import java.io.EOFException
 import java.net.Socket
+import java.net.SocketException
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -54,24 +56,31 @@ class ClientSession(
      * It reads the packet length, ID, and data, then dispatches the packet to the handler
      */
     fun handle() {
-        while (!isClosed()) {
-            val len = input.readVarInt()
-            val id = input.readVarInt()
-            val dataLength = len - VarInt.getVarIntSize(id)
-            val data = ByteArray(dataLength)
-            input.readFully(data)
+        try {
+            while (!isClosed()) {
+                val len = input.readVarInt()
+                val id = input.readVarInt()
+                val dataLength = len - VarInt.getVarIntSize(id)
 
-            val packetClass = PacketRegistry.getPacket(state, id)
-            if (packetClass != null) {
-                val packet: Packet = packetClass
-                    .getConstructor(ByteArray::class.java)
-                    .newInstance(data)
-                handler.handle(packet)
-            } else {
-                if(id != 0x12 && id != 0x13 && id != 0x14) { //Movement packets
-                    Bullet.logger.warn("Unhandled packet with raw packet ID: 0x$id (Hex: 0x${id.toString(16)})")
+                val data = ByteArray(dataLength)
+                input.readFully(data)
+
+                val packetClass = PacketRegistry.getPacket(state, id)
+                if (packetClass != null) {
+                    val packet: Packet = packetClass
+                        .getConstructor(ByteArray::class.java)
+                        .newInstance(data)
+                    handler.handle(packet)
+                } else {
+                    if(id != 0x12 && id != 0x13 && id != 0x14) { //Movement packets
+                        Bullet.logger.warn("Unhandled packet with raw packet ID: 0x$id (Hex: 0x${id.toString(16)})")
+                    }
                 }
             }
+        } catch(e: EOFException) {
+            disconnect("Client closed the connection")
+        } catch(e: SocketException) {
+            disconnect("Connection lost")
         }
     }
 
@@ -79,7 +88,7 @@ class ClientSession(
         keepAliveTimer = Timer(true).apply {
             scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
-                    if(keepAliveTimer == null) {
+                    if(isClosed()) {
                         cancel()
                         return
                     }
@@ -146,6 +155,11 @@ class ClientSession(
      * @param packet The packet to be sent
      */
     fun sendPacket(packet: Packet) {
+        if(isClosed()) {
+            Bullet.logger.warn("Tried to send a packet to ac losed connection")
+            return
+        }
+
         out.write(packet.retrieveData())
         out.flush()
     }
