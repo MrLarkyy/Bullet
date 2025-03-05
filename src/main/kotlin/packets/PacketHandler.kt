@@ -89,7 +89,14 @@ class PacketHandler(
         val player = client.player
         val lastLocation = player.location
 
-        val (deltaX, deltaY, deltaZ) = calculateDeltas(packet.x, packet.feetY, packet.z, lastLocation.x, lastLocation.y, lastLocation.z)
+        val (deltaX, deltaY, deltaZ) = calculateDeltas(
+            packet.x,
+            packet.feetY,
+            packet.z,
+            lastLocation.x,
+            lastLocation.y,
+            lastLocation.z
+        )
 
         player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
@@ -119,7 +126,14 @@ class PacketHandler(
         val player = client.player
         val lastLocation = player.location
 
-        val (deltaX, deltaY, deltaZ) = calculateDeltas(packet.x, packet.feetY, packet.z, lastLocation.x, lastLocation.y, lastLocation.z)
+        val (deltaX, deltaY, deltaZ) = calculateDeltas(
+            packet.x,
+            packet.feetY,
+            packet.z,
+            lastLocation.x,
+            lastLocation.y,
+            lastLocation.z
+        )
 
         player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
         player.onGround = packet.onGround
@@ -207,15 +221,8 @@ class PacketHandler(
         }
 
         val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
+        val player = initializePlayer(username, uuid)
 
-        val player = Player(client)
-        player.username = username
-        player.uuid = uuid
-        player.location = Location(8.5, 2.0, 8.5, 0f, 0f)
-        player.gameMode = GameMode.CREATIVE
-        player.onGround = false
-
-        client.player = player
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
         client.state = GameState.PLAY
 
@@ -246,37 +253,7 @@ class PacketHandler(
         client.scheduleKeepAlive()
         client.sendPacket(ServerChunkPacket(0, 0))
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
-                otherPlayer.clientSession.sendPacket(
-                    ServerSpawnPlayerPacket(
-                        player.entityID,
-                        player.uuid,
-                        player.location.x,
-                        player.location.y,
-                        player.location.z,
-                        player.location.yaw,
-                        player.location.pitch
-                    )
-                )
-            }
-        }
-
-        for(existingPlayer in Bullet.players) {
-            if(existingPlayer != player) {
-                client.sendPacket(
-                    ServerSpawnPlayerPacket(
-                        existingPlayer.entityID,
-                        existingPlayer.uuid,
-                        existingPlayer.location.x,
-                        existingPlayer.location.y,
-                        existingPlayer.location.z,
-                        existingPlayer.location.yaw,
-                        existingPlayer.location.pitch
-                    )
-                )
-            }
-        }
+        sendSpawnPlayerPackets(player)
     }
 
     /**
@@ -336,10 +313,59 @@ class PacketHandler(
         }
     }
 
-    private fun calculateDeltas(currentX: Double, currentY: Double, currentZ: Double, lastX: Double, lastY: Double, lastZ: Double): Triple<Short, Short, Short> {
+    private fun calculateDeltas(
+        currentX: Double, currentY: Double, currentZ: Double,
+        lastX: Double, lastY: Double, lastZ: Double
+    ): Triple<Short, Short, Short> {
         val deltaX = ((currentX - lastX) * 4096).toInt().coerceIn(-32768, 32767).toShort()
         val deltaY = ((currentY - lastY) * 4096).toInt().coerceIn(-32768, 32767).toShort()
         val deltaZ = ((currentZ - lastZ) * 4096).toInt().coerceIn(-32768, 32767).toShort()
         return Triple(deltaX, deltaY, deltaZ)
+    }
+
+    private fun initializePlayer(username: String, uuid: UUID): Player {
+        val player = Player(client)
+        player.username = username
+        player.uuid = uuid
+        player.location = Location(8.5, 2.0, 8.5, 0f, 0f)
+        player.gameMode = GameMode.CREATIVE
+        player.onGround = false
+
+        client.player = player
+        return player
+    }
+
+    private fun sendSpawnPlayerPackets(player: Player) {
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        player.entityID,
+                        player.uuid,
+                        player.location.x,
+                        player.location.y,
+                        player.location.z,
+                        player.location.yaw,
+                        player.location.pitch
+                    )
+                )
+            }
+        }
+
+        for(existingPlayer in Bullet.players) {
+            if(existingPlayer != player) {
+                client.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        existingPlayer.entityID,
+                        existingPlayer.uuid,
+                        existingPlayer.location.x,
+                        existingPlayer.location.y,
+                        existingPlayer.location.z,
+                        existingPlayer.location.yaw,
+                        existingPlayer.location.pitch
+                    )
+                )
+            }
+        }
     }
 }
