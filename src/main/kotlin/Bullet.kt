@@ -1,5 +1,6 @@
 package com.aznos
 
+import com.aznos.entity.player.Player
 import com.google.gson.JsonParser
 import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
@@ -23,6 +24,7 @@ object Bullet : AutoCloseable {
 
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
+    val players = mutableListOf<Player>()
 
     var dimensionCodec: CompoundTag? = null
 

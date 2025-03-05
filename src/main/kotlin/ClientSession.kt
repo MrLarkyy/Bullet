@@ -14,6 +14,7 @@ import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
 import com.aznos.entity.player.data.ChatPosition
 import com.aznos.entity.player.data.GameMode
+import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream
 import java.net.Socket
@@ -38,7 +39,7 @@ class ClientSession(
     var state = GameState.HANDSHAKE
     var protocol = -1
 
-    var player = Player()
+    lateinit var player: Player
 
     /**
      * This timer will keep track of when to send the keep alive packet to the client
@@ -119,6 +120,36 @@ class ClientSession(
     fun sendPacket(packet: Packet) {
         out.write(packet.retrieveData())
         out.flush()
+    }
+
+    fun sendPlayerSpawnPacket() {
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer.clientSession != this) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        player.entityID,
+                        player.uuid,
+                        player.location.x,
+                        player.location.y,
+                        player.location.z,
+                        player.location.yaw,
+                        player.location.pitch
+                    )
+                )
+
+                sendPacket(
+                    ServerSpawnPlayerPacket(
+                        otherPlayer.entityID,
+                        otherPlayer.uuid,
+                        otherPlayer.location.x,
+                        otherPlayer.location.y,
+                        otherPlayer.location.z,
+                        otherPlayer.location.yaw,
+                        otherPlayer.location.pitch
+                    )
+                )
+            }
+        }
     }
 
     /**

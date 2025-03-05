@@ -4,6 +4,7 @@ import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.entity.player.Player
 import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
@@ -16,6 +17,8 @@ import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.entity.player.data.GameMode
+import com.aznos.entity.player.data.Location
+import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -87,45 +90,56 @@ class PacketHandler(
         if(preJoinEvent.isCancelled) return
 
         if(client.protocol > Bullet.PROTOCOL) {
-            client.disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
+            client.disconnect("Please downgrade your Minecraft version to " + Bullet.VERSION)
             return
         } else if(client.protocol < Bullet.PROTOCOL) {
-            client.disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
+            client.disconnect("Your client is outdated, please upgrade to Minecraft version " + Bullet.VERSION)
             return
         }
 
         val username = packet.username
-        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
+        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) {
             client.disconnect("Invalid username")
             return
         }
 
         val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
-        client.player.username = username
-        client.player.uuid = uuid
+
+        val player = Player(client)
+        player.username = username
+        player.uuid = uuid
+        player.location = Location(8.5, 2.0, 8.5, 0f, 0f)
+        player.gameMode = GameMode.CREATIVE
+
+        client.player = player
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
         client.state = GameState.PLAY
 
-        client.sendPacket(ServerJoinGamePacket(
-            0,
-            false,
-            GameMode.CREATIVE,
-            "minecraft:overworld",
-            Bullet.dimensionCodec!!,
-            Bullet.MAX_PLAYERS,
-            8,
-            reducedDebugInfo = false,
-            enableRespawnScreen = true,
-            isDebug = false,
-            isFlat = true
-        ))
+        client.sendPacket(
+            ServerJoinGamePacket(
+                player.entityID,
+                false,
+                player.gameMode,
+                "minecraft:overworld",
+                Bullet.dimensionCodec!!,
+                Bullet.MAX_PLAYERS,
+                8,
+                reducedDebugInfo = false,
+                enableRespawnScreen = true,
+                isDebug = false,
+                isFlat = true
+            )
+        )
 
-        client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))
+        client.sendPacket(ServerPlayerPositionAndLookPacket(player.location))
 
         val joinEvent = PlayerJoinEvent(client.player.username)
         EventManager.fire(joinEvent)
         if(joinEvent.isCancelled) return
+
+        Bullet.players.add(player)
+        client.sendPlayerSpawnPacket()
 
         client.scheduleKeepAlive()
         client.sendPacket(ServerChunkPacket(0, 0))

@@ -1,5 +1,6 @@
 package com.aznos.packets.play.out
 
+import com.aznos.entity.player.data.Location
 import com.aznos.packets.Packet
 
 /**
@@ -13,18 +14,14 @@ import com.aznos.packets.Packet
  * @param pitch The player pitch (up-down)
  */
 class ServerPlayerPositionAndLookPacket(
-    x: Double,
-    y: Double,
-    z: Double,
-    yaw: Float,
-    pitch: Float
+    location: Location
 ) : Packet(0x34) {
     init {
-        wrapper.writeDouble(x)
-        wrapper.writeDouble(y)
-        wrapper.writeDouble(z)
-        wrapper.writeFloat(yaw)
-        wrapper.writeFloat(pitch)
+        wrapper.writeDouble(location.x)
+        wrapper.writeDouble(location.y)
+        wrapper.writeDouble(location.z)
+        wrapper.writeFloat(location.yaw)
+        wrapper.writeFloat(location.pitch)
 
         wrapper.writeByte(0)
         wrapper.writeByte(0)
