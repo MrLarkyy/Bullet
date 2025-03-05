@@ -65,7 +65,9 @@ class ClientSession(
                     .newInstance(data)
                 handler.handle(packet)
             } else {
-                println("No registered packet for state $state with id $id")
+                if(id != 0x12 && id != 0x13 && id != 0x14) { //Movement packets
+                    Bullet.logger.warn("Unhandled packet with raw packet ID: 0x$id (Hex: 0x${id.toString(16)})")
+                }
             }
         }
     }
