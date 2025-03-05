@@ -1,4 +1,4 @@
-package com.aznos.player
+package com.aznos.entity.player.data
 
 @Suppress("unused")
 enum class ChatPosition(val id: Int) {

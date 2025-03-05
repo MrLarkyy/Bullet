@@ -15,7 +15,7 @@ import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.player.GameMode
+import com.aznos.entity.player.data.GameMode
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -47,13 +47,13 @@ class PacketHandler(
 
         val formattedMessage = message.replace('&', '§')
 
-        val event = PlayerChatEvent(client.username!!, formattedMessage)
+        val event = PlayerChatEvent(client.player.username, formattedMessage)
         EventManager.fire(event)
         if(event.isCancelled) return
 
         val textComponent = Component.text()
             .append(Component.text().content("<").color(NamedTextColor.GRAY))
-            .append(Component.text().content(client.username!!).color(TextColor.color(0x55FFFF)))
+            .append(Component.text().content(client.player.username).color(TextColor.color(0x55FFFF)))
             .append(Component.text().content("> ").color(NamedTextColor.GRAY))
             .append(Component.text().content(formattedMessage).color(TextColor.color(0xFFFFFF)))
             .build()
@@ -66,7 +66,7 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
-        val event = PlayerHeartbeatEvent(client.username!!)
+        val event = PlayerHeartbeatEvent(client.player.username)
         EventManager.fire(event)
         if(event.isCancelled) return
 
@@ -101,8 +101,8 @@ class PacketHandler(
         }
 
         val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
-        client.username = username
-        client.uuid = uuid
+        client.player.username = username
+        client.player.uuid = uuid
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
         client.state = GameState.PLAY
@@ -123,7 +123,7 @@ class PacketHandler(
 
         client.sendPacket(ServerPlayerPositionAndLookPacket(8.5, 2.0, 8.5, 0f, 0f))
 
-        val joinEvent = PlayerJoinEvent(client.username!!)
+        val joinEvent = PlayerJoinEvent(client.player.username)
         EventManager.fire(joinEvent)
         if(joinEvent.isCancelled) return
 

@@ -2,6 +2,7 @@ package com.aznos
 
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
+import com.aznos.entity.player.Player
 import com.aznos.events.EventManager
 import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
@@ -11,7 +12,8 @@ import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.play.out.ServerChatMessagePacket
 import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
-import com.aznos.player.ChatPosition
+import com.aznos.entity.player.data.ChatPosition
+import com.aznos.entity.player.data.GameMode
 import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream
 import java.net.Socket
@@ -36,8 +38,7 @@ class ClientSession(
     var state = GameState.HANDSHAKE
     var protocol = -1
 
-    var username: String? = null
-    var uuid: UUID? = null
+    var player = Player()
 
     /**
      * This timer will keep track of when to send the keep alive packet to the client
@@ -104,7 +105,7 @@ class ClientSession(
             sendPacket(ServerLoginDisconnectPacket(message))
         }
 
-        EventManager.fire(PlayerQuitEvent(username!!))
+        EventManager.fire(PlayerQuitEvent(player.username))
         close()
     }
 
