@@ -40,7 +40,7 @@ import java.util.UUID
  *
  * @property client The clients session
  */
-@Suppress("UnusedParameter")
+@Suppress("UnusedParameter", "TooManyFunctions")
 class PacketHandler(
     private val client: ClientSession
 ) {
@@ -87,20 +87,28 @@ class PacketHandler(
     @PacketReceiver
     fun onPlayerPositionAndRotation(packet: ClientPlayerPositionAndRotation) {
         val player = client.player
+        val lastLocation = player.location
+
+        val deltaX = ((packet.x - lastLocation.x) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaY = ((packet.feetY - lastLocation.y) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaZ = ((packet.z - lastLocation.z) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+
         player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
-                client.sendPacket(ServerEntityPositionAndRotationPacket(
-                    player.entityID,
-                    player.location.x.toInt().toShort(),
-                    player.location.y.toInt().toShort(),
-                    player.location.z.toInt().toShort(),
-                    player.location.yaw,
-                    player.location.pitch,
-                    player.onGround
-                ))
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerEntityPositionAndRotationPacket(
+                        player.entityID,
+                        deltaX,
+                        deltaY,
+                        deltaZ,
+                        player.location.yaw,
+                        player.location.pitch,
+                        player.onGround
+                    )
+                )
             }
         }
     }
@@ -111,18 +119,26 @@ class PacketHandler(
     @PacketReceiver
     fun onPlayerPosition(packet: ClientPlayerPositionPacket) {
         val player = client.player
+        val lastLocation = player.location
+
+        val deltaX = ((packet.x - lastLocation.x) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaY = ((packet.feetY - lastLocation.y) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaZ = ((packet.z - lastLocation.z) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+
         player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
         player.onGround = packet.onGround
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
-                client.sendPacket(ServerEntityPositionPacket(
-                    player.entityID,
-                    player.location.x.toInt().toShort(),
-                    player.location.y.toInt().toShort(),
-                    player.location.z.toInt().toShort(),
-                    player.onGround
-                ))
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerEntityPositionPacket(
+                        player.entityID,
+                        deltaX,
+                        deltaY,
+                        deltaZ,
+                        player.onGround
+                    )
+                )
             }
         }
     }
