@@ -7,6 +7,7 @@ import dev.dewy.nbt.tags.collection.CompoundTag
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.InputStreamReader
+import java.net.BindException
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
@@ -35,8 +36,13 @@ object Bullet : AutoCloseable {
      * @param port - The port the server will run on, this defaults at 25565
      */
     fun createServer(host: String, port: Int = 25565) {
-        server = ServerSocket().apply {
-            bind(InetSocketAddress(host, port))
+        try {
+            server = ServerSocket().apply {
+                bind(InetSocketAddress(host, port))
+            }
+        } catch(e: BindException) {
+            logger.error("Failed to bind to $host:$port, is the address already in use?")
+            return
         }
 
         val reader = javaClass.getResourceAsStream("/codec.json")?.let {
