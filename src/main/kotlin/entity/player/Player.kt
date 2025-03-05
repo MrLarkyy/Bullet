@@ -5,6 +5,7 @@ import com.aznos.entity.Entity
 import com.aznos.entity.player.data.GameMode
 import com.aznos.entity.player.data.Location
 import java.util.UUID
+import kotlin.properties.Delegates
 
 class Player(
     val clientSession: ClientSession
@@ -13,4 +14,5 @@ class Player(
     lateinit var uuid: UUID
     lateinit var location: Location
     lateinit var gameMode: GameMode
+    var onGround by Delegates.notNull<Boolean>()
 }

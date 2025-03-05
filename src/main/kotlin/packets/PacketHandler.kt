@@ -18,6 +18,10 @@ import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.entity.player.data.GameMode
 import com.aznos.entity.player.data.Location
+import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
+import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
+import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
+import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
@@ -36,6 +40,41 @@ import java.util.UUID
 class PacketHandler(
     private val client: ClientSession
 ) {
+    @PacketReceiver
+    fun onPlayerMovement(packet: ClientPlayerMovement) {
+        val player = client.player
+        player.onGround = packet.onGround
+
+        Bullet.logger.info("Player moved to ${player.location}")
+    }
+
+    @PacketReceiver
+    fun onPlayerRotation(packet: ClientPlayerRotation) {
+        val player = client.player
+        player.location = Location(player.location.x, player.location.y, player.location.z, packet.yaw, packet.pitch)
+        player.onGround = packet.onGround
+
+        Bullet.logger.info("Player rotated to ${player.location}")
+    }
+
+    @PacketReceiver
+    fun onPlayerPositionAndRotation(packet: ClientPlayerPositionAndRotation) {
+        val player = client.player
+        player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
+        player.onGround = packet.onGround
+
+        Bullet.logger.info("Player moved to ${player.location}")
+    }
+
+    @PacketReceiver
+    fun onPlayerPosition(packet: ClientPlayerPositionPacket) {
+        val player = client.player
+        player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
+        player.onGround = packet.onGround
+
+        Bullet.logger.info("Player moved to ${player.location}")
+    }
+
     /**
      * Handles when a chat message is received
      */
@@ -110,6 +149,7 @@ class PacketHandler(
         player.uuid = uuid
         player.location = Location(8.5, 2.0, 8.5, 0f, 0f)
         player.gameMode = GameMode.CREATIVE
+        player.onGround = false
 
         client.player = player
 
