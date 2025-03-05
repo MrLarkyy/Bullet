@@ -89,9 +89,9 @@ class PacketHandler(
         val player = client.player
         val lastLocation = player.location
 
-        val deltaX = ((packet.x - lastLocation.x) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaY = ((packet.feetY - lastLocation.y) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaZ = ((packet.z - lastLocation.z) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaX = ((packet.x - lastLocation.x) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaY = ((packet.feetY - lastLocation.y) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaZ = ((packet.z - lastLocation.z) * 4096).toInt().coerceIn(-32768, 32767).toShort()
 
         player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
@@ -121,9 +121,9 @@ class PacketHandler(
         val player = client.player
         val lastLocation = player.location
 
-        val deltaX = ((packet.x - lastLocation.x) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaY = ((packet.feetY - lastLocation.y) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaZ = ((packet.z - lastLocation.z) * 32.0).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaX = ((packet.x - lastLocation.x) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaY = ((packet.feetY - lastLocation.y) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaZ = ((packet.z - lastLocation.z) * 4096).toInt().coerceIn(-32768, 32767).toShort()
 
         player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
         player.onGround = packet.onGround
@@ -220,7 +220,6 @@ class PacketHandler(
         player.onGround = false
 
         client.player = player
-
         client.sendPacket(ServerLoginSuccessPacket(uuid, username))
         client.state = GameState.PLAY
 
@@ -248,9 +247,40 @@ class PacketHandler(
 
         Bullet.players.add(player)
         client.sendPlayerSpawnPacket()
-
         client.scheduleKeepAlive()
         client.sendPacket(ServerChunkPacket(0, 0))
+
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
+                otherPlayer.clientSession.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        player.entityID,
+                        player.uuid,
+                        player.location.x,
+                        player.location.y,
+                        player.location.z,
+                        player.location.yaw,
+                        player.location.pitch
+                    )
+                )
+            }
+        }
+
+        for (existingPlayer in Bullet.players) {
+            if (existingPlayer != player) {
+                client.sendPacket(
+                    ServerSpawnPlayerPacket(
+                        existingPlayer.entityID,
+                        existingPlayer.uuid,
+                        existingPlayer.location.x,
+                        existingPlayer.location.y,
+                        existingPlayer.location.z,
+                        existingPlayer.location.yaw,
+                        existingPlayer.location.pitch
+                    )
+                )
+            }
+        }
     }
 
     /**
