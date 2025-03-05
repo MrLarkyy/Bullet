@@ -59,7 +59,7 @@ object PacketRegistry {
     /**
      * Get the packet by the packet ID
      *
-     * @param gameState The current gamestate
+     * @param gameState The current game state
      * @param id The ID of the packet
      * @return The class of the packet
      */

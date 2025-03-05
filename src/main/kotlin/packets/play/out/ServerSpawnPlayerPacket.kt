@@ -9,13 +9,13 @@ import java.util.UUID
  * This packet is sent to all clients to inform them that a new player has spawned
  */
 class ServerSpawnPlayerPacket(
-    private val entityID: Int,
-    private val uuid: UUID,
-    private val x: Double,
-    private val y: Double,
-    private val z: Double,
-    private val yaw: Float,
-    private val pitch: Float,
+    entityID: Int,
+    uuid: UUID,
+    x: Double,
+    y: Double,
+    z: Double,
+    yaw: Float,
+    pitch: Float,
 ) : Packet(0x04) {
     init {
         wrapper.writeVarInt(entityID)

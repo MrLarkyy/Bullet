@@ -1,13 +1,9 @@
 package com.aznos.entity
 
 open class Entity {
-    val entityID: Int
+    val entityID: Int = lastID++
 
     companion object {
         private var lastID = 0
-    }
-
-    init {
-        entityID = lastID++
     }
 }

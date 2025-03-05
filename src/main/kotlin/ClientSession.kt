@@ -13,7 +13,6 @@ import com.aznos.packets.play.out.ServerChatMessagePacket
 import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
 import com.aznos.entity.player.data.ChatPosition
-import com.aznos.entity.player.data.GameMode
 import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.play.out.ServerPlayerInfoPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
@@ -154,7 +153,7 @@ class ClientSession(
      */
     fun sendPacket(packet: Packet) {
         if(isClosed()) {
-            Bullet.logger.warn("Tried to send a packet to ac losed connection")
+            Bullet.logger.warn("Tried to send a packet to a closed connection")
             return
         }
 

@@ -89,15 +89,13 @@ class PacketHandler(
         val player = client.player
         val lastLocation = player.location
 
-        val deltaX = ((packet.x - lastLocation.x) * 4096).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaY = ((packet.feetY - lastLocation.y) * 4096).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaZ = ((packet.z - lastLocation.z) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val (deltaX, deltaY, deltaZ) = calculateDeltas(packet.x, packet.feetY, packet.z, lastLocation.x, lastLocation.y, lastLocation.z)
 
         player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
 
-        for (otherPlayer in Bullet.players) {
-            if (otherPlayer != player) {
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
                     ServerEntityPositionAndRotationPacket(
                         player.entityID,
@@ -121,15 +119,13 @@ class PacketHandler(
         val player = client.player
         val lastLocation = player.location
 
-        val deltaX = ((packet.x - lastLocation.x) * 4096).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaY = ((packet.feetY - lastLocation.y) * 4096).toInt().coerceIn(-32768, 32767).toShort()
-        val deltaZ = ((packet.z - lastLocation.z) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val (deltaX, deltaY, deltaZ) = calculateDeltas(packet.x, packet.feetY, packet.z, lastLocation.x, lastLocation.y, lastLocation.z)
 
         player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
         player.onGround = packet.onGround
 
-        for (otherPlayer in Bullet.players) {
-            if (otherPlayer != player) {
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
                     ServerEntityPositionPacket(
                         player.entityID,
@@ -250,8 +246,8 @@ class PacketHandler(
         client.scheduleKeepAlive()
         client.sendPacket(ServerChunkPacket(0, 0))
 
-        for (otherPlayer in Bullet.players) {
-            if (otherPlayer != player) {
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
                     ServerSpawnPlayerPacket(
                         player.entityID,
@@ -266,8 +262,8 @@ class PacketHandler(
             }
         }
 
-        for (existingPlayer in Bullet.players) {
-            if (existingPlayer != player) {
+        for(existingPlayer in Bullet.players) {
+            if(existingPlayer != player) {
                 client.sendPacket(
                     ServerSpawnPlayerPacket(
                         existingPlayer.entityID,
@@ -338,5 +334,12 @@ class PacketHandler(
                 }
             }
         }
+    }
+
+    private fun calculateDeltas(currentX: Double, currentY: Double, currentZ: Double, lastX: Double, lastY: Double, lastZ: Double): Triple<Short, Short, Short> {
+        val deltaX = ((currentX - lastX) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaY = ((currentY - lastY) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        val deltaZ = ((currentZ - lastZ) * 4096).toInt().coerceIn(-32768, 32767).toShort()
+        return Triple(deltaX, deltaY, deltaZ)
     }
 }

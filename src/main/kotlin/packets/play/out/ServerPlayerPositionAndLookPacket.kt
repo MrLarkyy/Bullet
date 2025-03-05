@@ -7,11 +7,7 @@ import com.aznos.packets.Packet
  * Sends the player position and look packet to the client
  * this is the last packet needed in order for the client to join the world
  *
- * @param x The X position
- * @param y The Y position
- * @param z The Z position
- * @param yaw The player yaw (left-right)
- * @param pitch The player pitch (up-down)
+ * @param location The new location
  */
 class ServerPlayerPositionAndLookPacket(
     location: Location
