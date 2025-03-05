@@ -3,6 +3,8 @@ package com.aznos
 import com.google.gson.JsonParser
 import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.io.InputStreamReader
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -16,6 +18,8 @@ object Bullet : AutoCloseable {
     const val VERSION: String = "1.16.5"
     const val MAX_PLAYERS: Int = 20
     const val DESCRIPTION: String = "§6Runs as fast as a bullet"
+
+    val logger: Logger = LogManager.getLogger()
 
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
@@ -40,7 +44,7 @@ object Bullet : AutoCloseable {
         val parsed = JsonParser.parseReader(reader).asJsonObject
         dimensionCodec = CompoundTag().fromJson(parsed, 0, TagTypeRegistry())
 
-        println("Bullet server started at $host:$port")
+        logger.info("Bullet server started at $host:$port")
 
         while(!isClosed()) {
             val client = server?.accept()
