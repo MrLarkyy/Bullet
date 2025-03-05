@@ -46,7 +46,7 @@ class ClientSession(
     /**
      * This timer will keep track of when to send the keep alive packet to the client
      */
-    private var keepAliveTimer: Unit? = null
+    private var keepAliveTimer: Timer? = null
     var respondedToKeepAlive: Boolean = true
 
     /**
@@ -76,17 +76,24 @@ class ClientSession(
     }
 
     fun scheduleKeepAlive() {
-        keepAliveTimer = Timer(true).scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                if(!respondedToKeepAlive) {
-                    disconnect("Timed out")
-                    cancel()
-                    return
+        keepAliveTimer = Timer(true).apply {
+            scheduleAtFixedRate(object : TimerTask() {
+                override fun run() {
+                    if(keepAliveTimer == null) {
+                        cancel()
+                        return
+                    }
+
+                    if(!respondedToKeepAlive) {
+                        disconnect("Timed out")
+                        cancel()
+                        return
+                    }
+                    sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
+                    respondedToKeepAlive = true
                 }
-                sendPacket(ServerKeepAlivePacket(System.currentTimeMillis()))
-                respondedToKeepAlive = true
-            }
-        }, 10.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
+            }, 10.seconds.inWholeMilliseconds, 10.seconds.inWholeMilliseconds)
+        }
     }
 
     /**
@@ -109,6 +116,9 @@ class ClientSession(
         } else if(state == GameState.LOGIN) {
             sendPacket(ServerLoginDisconnectPacket(message))
         }
+
+        keepAliveTimer?.cancel()
+        keepAliveTimer = null
 
         for(session in Bullet.players) {
             session.clientSession.sendPacket(
