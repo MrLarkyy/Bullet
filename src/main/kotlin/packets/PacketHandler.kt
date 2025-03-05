@@ -23,6 +23,10 @@ import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
+import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
+import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
+import com.aznos.packets.play.out.movement.ServerEntityPositionPacket
+import com.aznos.packets.play.out.movement.ServerEntityRotationPacket
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -40,39 +44,87 @@ import java.util.UUID
 class PacketHandler(
     private val client: ClientSession
 ) {
+    /**
+     * Every 20 ticks the client will send an empty movement packet telling the server if the
+     * client is on the ground or not
+     */
     @PacketReceiver
     fun onPlayerMovement(packet: ClientPlayerMovement) {
         val player = client.player
         player.onGround = packet.onGround
 
-        Bullet.logger.info("Player moved to ${player.location}")
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                client.sendPacket(ServerEntityMovementPacket(player.entityID))
+            }
+        }
     }
 
+    /**
+     * Handles when a player rotates to a new yaw and pitch
+     */
     @PacketReceiver
     fun onPlayerRotation(packet: ClientPlayerRotation) {
         val player = client.player
         player.location = Location(player.location.x, player.location.y, player.location.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
 
-        Bullet.logger.info("Player rotated to ${player.location}")
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                client.sendPacket(ServerEntityRotationPacket(
+                    player.entityID,
+                    player.location.yaw,
+                    player.location.pitch,
+                    player.onGround
+                ))
+            }
+        }
     }
 
+    /**
+     * Handles when a player moves to a new position and rotation axis at the same time
+     */
     @PacketReceiver
     fun onPlayerPositionAndRotation(packet: ClientPlayerPositionAndRotation) {
         val player = client.player
         player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
 
-        Bullet.logger.info("Player moved to ${player.location}")
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                client.sendPacket(ServerEntityPositionAndRotationPacket(
+                    player.entityID,
+                    player.location.x.toInt().toShort(),
+                    player.location.y.toInt().toShort(),
+                    player.location.z.toInt().toShort(),
+                    player.location.yaw,
+                    player.location.pitch,
+                    player.onGround
+                ))
+            }
+        }
     }
 
+    /**
+     * Handles when a player moves to a new position
+     */
     @PacketReceiver
     fun onPlayerPosition(packet: ClientPlayerPositionPacket) {
         val player = client.player
         player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
         player.onGround = packet.onGround
 
-        Bullet.logger.info("Player moved to ${player.location}")
+        for(otherPlayer in Bullet.players) {
+            if(otherPlayer != player) {
+                client.sendPacket(ServerEntityPositionPacket(
+                    player.entityID,
+                    player.location.x.toInt().toShort(),
+                    player.location.y.toInt().toShort(),
+                    player.location.z.toInt().toShort(),
+                    player.onGround
+                ))
+            }
+        }
     }
 
     /**
