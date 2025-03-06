@@ -1,5 +1,6 @@
 package com.aznos
 
+import com.aznos.commands.CommandManager
 import com.aznos.entity.player.Player
 import com.google.gson.JsonParser
 import dev.dewy.nbt.api.registry.TagTypeRegistry
@@ -56,6 +57,8 @@ object Bullet : AutoCloseable {
 
         val parsed = JsonParser.parseReader(reader).asJsonObject
         dimensionCodec = CompoundTag().fromJson(parsed, 0, TagTypeRegistry())
+
+        CommandManager.registerCommands()
 
         logger.info("Bullet server started at $host:$port")
 
