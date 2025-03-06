@@ -7,8 +7,8 @@ import com.aznos.packets.data.GraphCommandNode
 import java.io.IOException
 
 class ServerDeclareCommandsPacket(
-    private val nodes: List<GraphCommandNode>,
-    private val rootIndex: Int
+    nodes: List<GraphCommandNode>,
+    rootIndex: Int
 ) : Packet(0x10) {
     init {
         wrapper.writeVarInt(nodes.size)
@@ -33,6 +33,9 @@ class ServerDeclareCommandsPacket(
 
             if(node.parser != null) {
                 wrapper.writeString(node.parser)
+                if(node.properties is Int) {
+                    wrapper.writeVarInt(node.properties)
+                }
             }
 
             if(node.flags.toInt() and 0x10 != 0) {

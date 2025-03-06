@@ -1,9 +1,12 @@
 package com.aznos.commands
 
+import com.aznos.Bullet
 import com.aznos.entity.player.Player
 import com.aznos.packets.data.GraphCommandNode
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
+import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.tree.ArgumentCommandNode
 import com.mojang.brigadier.tree.CommandNode
 import com.mojang.brigadier.tree.LiteralCommandNode
@@ -16,13 +19,17 @@ object CommandManager {
 
     fun registerCommands() {
         dispatcher.register(
-            LiteralArgumentBuilder.literal<Player>("test")
-                .executes { context ->
-                    context.source.clientSession.sendMessage(
-                        Component.text("Hello world!")
-                    )
-                    1
-                }
+            LiteralArgumentBuilder.literal<Player>("say")
+                .then(
+                    RequiredArgumentBuilder.argument<Player, String>("message", StringArgumentType.greedyString())
+                        .executes{ context ->
+                            val message = StringArgumentType.getString(context, "message")
+                            context.source.clientSession.sendMessage(
+                                Component.text(message)
+                            )
+                            1
+                        }
+                )
         )
     }
 
@@ -53,6 +60,7 @@ object CommandManager {
                 is ArgumentCommandNode<*, *> -> 2
                 else -> 0
             }
+
             var flagsInt = typeBits
             if(node.command != null) flagsInt = flagsInt or 0x04
             if(node.redirect != null) flagsInt = flagsInt or 0x08
@@ -67,9 +75,11 @@ object CommandManager {
             }
 
             //TODO: Add more argument types
-            val parser: String? = if (node is ArgumentCommandNode<*, *>) {
-                "brigadier:string"
-            } else null
+            val(parser, propertiesValue) = if(node is ArgumentCommandNode<*, *>) {
+                "brigadier:string" to if(node.type is StringArgumentType) 2 else null
+            } else {
+                null to null
+            }
 
             GraphCommandNode(
                 flags = flags,
@@ -77,7 +87,7 @@ object CommandManager {
                 redirect = redirectIndex,
                 name = name,
                 parser = parser,
-                properties = null,
+                properties = propertiesValue,
                 suggestionsType = null
             )
         }
