@@ -24,7 +24,6 @@ class ServerDeclareCommandsPacket(
                 if(node.redirect == null) {
                     throw IOException("Redirect flag set but no redirect node index provided")
                 }
-
                 wrapper.writeVarInt(node.redirect)
             }
 
@@ -43,8 +42,8 @@ class ServerDeclareCommandsPacket(
 
                 wrapper.writeString(node.suggestionsType)
             }
-
-            wrapper.writeVarInt(rootIndex)
         }
+
+        wrapper.writeVarInt(rootIndex)
     }
 }

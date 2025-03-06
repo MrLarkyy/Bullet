@@ -29,49 +29,45 @@ object CommandManager {
     @Suppress("CyclomaticComplexMethod")
     fun buildCommandGraphFromDispatcher(dispatcher: CommandDispatcher<*>): Pair<List<GraphCommandNode>, Int> {
         val visited = mutableSetOf<CommandNode<*>>()
-        val ordering = mutableListOf< CommandNode<*>>()
+        val ordering = mutableListOf<CommandNode<*>>()
 
         fun traverse(node: CommandNode<*>) {
             if(visited.contains(node)) return
             visited.add(node)
 
-            for(child in node.children) traverse(node)
+            for(child in node.children) {
+                traverse(child)
+            }
+
             node.redirect?.let { traverse(it) }
             ordering.add(node)
         }
 
         traverse(dispatcher.root)
-        val indexMap = ordering.withIndex().associate {
-            it.value to it.index
-        }
+        val indexMap = ordering.withIndex().associate { it.value to it.index }
 
         val graphNodes = ordering.map { node ->
-            val typeBits = when(node) {
+            val typeBits = when (node) {
                 is RootCommandNode<*> -> 0
                 is LiteralCommandNode<*> -> 1
                 is ArgumentCommandNode<*, *> -> 2
                 else -> 0
             }
-
             var flagsInt = typeBits
             if(node.command != null) flagsInt = flagsInt or 0x04
             if(node.redirect != null) flagsInt = flagsInt or 0x08
 
             val flags: Byte = flagsInt.toByte()
-            val childrenIndices: List<Int> = node.children.mapNotNull { child ->
-                indexMap[child]
-            }
-
+            val childrenIndices: List<Int> = node.children.mapNotNull { child -> indexMap[child] }
             val redirectIndex = node.redirect?.let { indexMap[it] }
-            val name: String? = when(node) {
+            val name: String? = when (node) {
                 is LiteralCommandNode<*> -> node.literal
                 is ArgumentCommandNode<*, *> -> node.name
                 else -> null
             }
 
-
-            //TODO: Expand this
-            val parser: String? = if(node is ArgumentCommandNode<*, *>) {
+            //TODO: Add more argument types
+            val parser: String? = if (node is ArgumentCommandNode<*, *>) {
                 "brigadier:string"
             } else null
 
