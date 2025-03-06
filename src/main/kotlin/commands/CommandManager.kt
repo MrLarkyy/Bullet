@@ -6,7 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import net.kyori.adventure.text.Component
 
 object CommandManager {
-    private val dispatcher = CommandDispatcher<Player>()
+    val dispatcher = CommandDispatcher<Player>()
 
     fun registerCommands() {
         dispatcher.register(

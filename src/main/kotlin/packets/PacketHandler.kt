@@ -4,6 +4,7 @@ import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.commands.CommandManager
 import com.aznos.entity.player.Player
 import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
@@ -162,6 +163,22 @@ class PacketHandler(
 
         if(message.length > 255) {
             client.disconnect("Message too long")
+            return
+        }
+
+        if(message.startsWith('/')) {
+            val command = message.substring(1)
+            val commandSource = client.player
+
+            try {
+                CommandManager.dispatcher.execute(command, commandSource)
+            } catch(e: IllegalArgumentException) {
+                commandSource.clientSession.sendMessage(
+                    Component.text("An error occurred while executing the command")
+                        .color(NamedTextColor.RED)
+                )
+            }
+
             return
         }
 
