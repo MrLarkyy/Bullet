@@ -24,6 +24,7 @@ import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
+import com.aznos.packets.play.out.ServerDeclareCommandsPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
 import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
@@ -174,9 +175,17 @@ class PacketHandler(
             val result = CommandManager.dispatcher.execute(command, commandSource)
             if(result != CommandCodes.SUCCESS.id) {
                 when(result) {
-                    CommandCodes.UNKNOWN.id -> client.sendMessage(Component.text("Unknown command").color(NamedTextColor.RED))
-                    CommandCodes.ILLEGAL_ARGUMENT.id -> client.sendMessage(Component.text("Invalid command syntax, try typing /help").color(NamedTextColor.RED))
-                    CommandCodes.INVALID_PERMISSIONS.id -> client.sendMessage(Component.text("You don't have permission to use this command").color(NamedTextColor.RED))
+                    CommandCodes.UNKNOWN.id ->
+                        client.sendMessage(Component.text("Unknown command")
+                            .color(NamedTextColor.RED))
+
+                    CommandCodes.ILLEGAL_ARGUMENT.id ->
+                        client.sendMessage(Component.text("Invalid command syntax, try typing /help")
+                            .color(NamedTextColor.RED))
+
+                    CommandCodes.INVALID_PERMISSIONS.id ->
+                        client.sendMessage(Component.text("You don't have permission to use this command")
+                            .color(NamedTextColor.RED))
                 }
             }
 
@@ -272,6 +281,9 @@ class PacketHandler(
         client.sendPacket(ServerChunkPacket(0, 0))
 
         sendSpawnPlayerPackets(player)
+
+        val nodes = listOf(CommandManager.dispatcher.root) + CommandManager.dispatcher.root.children
+        client.sendPacket(ServerDeclareCommandsPacket(nodes, 0))
     }
 
     /**
