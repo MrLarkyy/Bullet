@@ -26,6 +26,7 @@ object CommandManager {
         )
     }
 
+    @Suppress("CyclomaticComplexMethod")
     fun buildCommandGraphFromDispatcher(dispatcher: CommandDispatcher<*>): Pair<List<GraphCommandNode>, Int> {
         val visited = mutableSetOf<CommandNode<*>>()
         val ordering = mutableListOf< CommandNode<*>>()
