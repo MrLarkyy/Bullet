@@ -4,6 +4,7 @@ import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.commands.CommandCodes
 import com.aznos.commands.CommandManager
 import com.aznos.entity.player.Player
 import com.aznos.events.*
@@ -170,13 +171,13 @@ class PacketHandler(
             val command = message.substring(1)
             val commandSource = client.player
 
-            try {
-                CommandManager.dispatcher.execute(command, commandSource)
-            } catch(e: IllegalArgumentException) {
-                commandSource.clientSession.sendMessage(
-                    Component.text("An error occurred while executing the command")
-                        .color(NamedTextColor.RED)
-                )
+            val result = CommandManager.dispatcher.execute(command, commandSource)
+            if(result != CommandCodes.SUCCESS.id) {
+                when(result) {
+                    CommandCodes.UNKNOWN.id -> client.sendMessage(Component.text("Unknown command").color(NamedTextColor.RED))
+                    CommandCodes.ILLEGAL_ARGUMENT.id -> client.sendMessage(Component.text("Invalid command syntax, try typing /help").color(NamedTextColor.RED))
+                    CommandCodes.INVALID_PERMISSIONS.id -> client.sendMessage(Component.text("You don't have permission to use this command").color(NamedTextColor.RED))
+                }
             }
 
             return
