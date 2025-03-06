@@ -278,6 +278,7 @@ class PacketHandler(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
             ServerStatusResponse.Players(event.maxPlayers, event.onlinePlayers),
             event.motd,
+            Bullet.FAVICON,
             false
         )
 

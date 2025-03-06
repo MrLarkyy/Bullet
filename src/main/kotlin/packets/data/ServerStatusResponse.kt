@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
  * @property version The server version
  * @property players The player count details
  * @property description The MOTD of the server
+ * @property favicon The base64 encoded favicon image
  * @property enforcesSecureChat Whether secure chat is enforced
  */
 @Serializable
@@ -15,6 +16,7 @@ data class ServerStatusResponse(
     val version: Version,
     val players: Players,
     val description: String,
+    val favicon: String? = null,
     val enforcesSecureChat: Boolean
 ) {
     /**

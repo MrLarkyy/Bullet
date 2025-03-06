@@ -18,6 +18,7 @@ import com.aznos.packets.play.out.ServerPlayerInfoPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import com.aznos.packets.status.LegacyPingRequest
 import net.kyori.adventure.text.TextComponent
+import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.EOFException
 import java.io.IOException
@@ -38,7 +39,7 @@ class ClientSession(
     private val socket: Socket,
 ) : AutoCloseable {
     private val out = socket.getOutputStream()
-    private val input = DataInputStream(socket.getInputStream())
+    private val input = DataInputStream(BufferedInputStream(socket.getInputStream()))
     private val handler = PacketHandler(this)
 
     var state = GameState.HANDSHAKE
