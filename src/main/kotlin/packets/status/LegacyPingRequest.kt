@@ -14,9 +14,9 @@ object LegacyPingRequest {
         Bullet.logger.info("Handling legacy ping for 1.6 clients")
         val response = "\u00A71\u0000${Bullet.PROTOCOL}" +
                 "\u0000${Bullet.VERSION}" +
-                "\u0000${Bullet.DESCRIPTION}" +
+                "\u0000${Bullet.motd}" +
                 "\u0000${Bullet.players.size}" +
-                "\u0000${Bullet.MAX_PLAYERS}"
+                "\u0000${Bullet.max_players}"
         val responseData = encodeLegacyKickPacket(response)
         out.write(responseData)
         out.flush()
@@ -29,7 +29,7 @@ object LegacyPingRequest {
      */
     fun handleBetaPing(out: OutputStream, session: ClientSession) {
         Bullet.logger.info("Handling legacy ping for Beta clients")
-        val response = "${Bullet.DESCRIPTION}\u00A7${Bullet.players.size}\u00A7${Bullet.MAX_PLAYERS}"
+        val response = "${Bullet.motd}\u00A7${Bullet.players.size}\u00A7${Bullet.max_players}"
         val responseData = encodeLegacyKickPacket(response)
         out.write(responseData)
         out.flush()

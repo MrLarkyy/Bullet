@@ -233,7 +233,7 @@ class PacketHandler(
                 player.gameMode,
                 "minecraft:overworld",
                 Bullet.dimensionCodec!!,
-                Bullet.MAX_PLAYERS,
+                Bullet.max_players,
                 8,
                 reducedDebugInfo = false,
                 enableRespawnScreen = true,
@@ -270,7 +270,7 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
-        val event = StatusRequestEvent(Bullet.MAX_PLAYERS, 0, Bullet.DESCRIPTION)
+        val event = StatusRequestEvent(Bullet.max_players, 0, Bullet.motd)
         EventManager.fire(event)
         if(event.isCancelled) return
 
@@ -278,7 +278,7 @@ class PacketHandler(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
             ServerStatusResponse.Players(event.maxPlayers, event.onlinePlayers),
             event.motd,
-            Bullet.FAVICON,
+            Bullet.favicon,
             false
         )
 
