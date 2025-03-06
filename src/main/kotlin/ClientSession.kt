@@ -16,9 +16,11 @@ import com.aznos.entity.player.data.ChatPosition
 import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.play.out.ServerPlayerInfoPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
+import com.aznos.packets.status.LegacyPingRequest
 import net.kyori.adventure.text.TextComponent
 import java.io.DataInputStream
 import java.io.EOFException
+import java.io.IOException
 import java.net.Socket
 import java.net.SocketException
 import java.util.*
@@ -56,6 +58,33 @@ class ClientSession(
      */
     fun handle() {
         try {
+            input.mark(10)
+            val firstByte = input.readUnsignedByte()
+            input.reset()
+
+            if(firstByte == 0xFE) {
+                val available = input.available()
+                if(available == 0) { //Pre 1.4
+                    LegacyPingRequest.handleBetaPing(out, this)
+                    return
+                } else {
+                    input.readByte()
+                    val secondByte = input.readByte().toInt()
+                    if(secondByte == 0x01) { //1.6
+                        LegacyPingRequest.handle16Ping(out, this)
+                        return
+                    } else { //Unknown
+                        LegacyPingRequest.handleBetaPing(out, this)
+                        return
+                    }
+                }
+            }
+        } catch(e: IOException) {
+            disconnect("Invalid packet")
+            return
+        }
+
+        try {
             while (!isClosed()) {
                 val len = input.readVarInt()
                 val id = input.readVarInt()
@@ -74,9 +103,9 @@ class ClientSession(
                     Bullet.logger.warn("Unhandled packet with raw packet ID: 0x$id (Hex: 0x${id.toString(16)})")
                 }
             }
-        } catch(e: EOFException) {
+        } catch (e: EOFException) {
             disconnect("Client closed the connection")
-        } catch(e: SocketException) {
+        } catch (e: SocketException) {
             disconnect("Connection lost")
         }
     }
