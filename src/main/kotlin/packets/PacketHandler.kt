@@ -6,6 +6,7 @@ import com.aznos.ClientSession
 import com.aznos.GameState
 import com.aznos.commands.CommandCodes
 import com.aznos.commands.CommandManager
+import com.aznos.commands.CommandManager.buildCommandGraphFromDispatcher
 import com.aznos.entity.player.Player
 import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
@@ -282,8 +283,8 @@ class PacketHandler(
 
         sendSpawnPlayerPackets(player)
 
-        val nodes = listOf(CommandManager.dispatcher.root) + CommandManager.dispatcher.root.children
-        client.sendPacket(ServerDeclareCommandsPacket(nodes, 0))
+        val (nodes, rootIndex) = buildCommandGraphFromDispatcher(CommandManager.dispatcher)
+        client.sendPacket(ServerDeclareCommandsPacket(nodes, rootIndex))
     }
 
     /**
