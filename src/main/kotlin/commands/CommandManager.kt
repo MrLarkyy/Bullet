@@ -43,19 +43,8 @@ object CommandManager {
         val visited = mutableSetOf<CommandNode<*>>()
         val ordering = mutableListOf<CommandNode<*>>()
 
-        fun traverse(node: CommandNode<*>) {
-            if(visited.contains(node)) return
-            visited.add(node)
+        traverseCommandNodes(dispatcher.root, visited, ordering)
 
-            for (child in node.children) {
-                traverse(child)
-            }
-
-            node.redirect?.let { traverse(it) }
-            ordering.add(node)
-        }
-
-        traverse(dispatcher.root)
         val indexMap = ordering.withIndex().associate {
             it.value to it.index
         }
@@ -83,73 +72,7 @@ object CommandManager {
             }
 
             val(parser, propertiesValue) = if (node is ArgumentCommandNode<*, *>) {
-                when(node.type) {
-                    is StringArgumentType ->
-                        "brigadier:string" to StringTypes.GREEDY
-                    is IntegerArgumentType -> {
-                        val intArg = node.type as IntegerArgumentType
-
-                        val min = try {
-                            val field = IntegerArgumentType::class.java.getDeclaredField("min")
-                            field.isAccessible = true
-                            field.getInt(intArg)
-                        } catch(e: Exception) {
-                            Int.MIN_VALUE
-                        }
-
-                        val max = try {
-                            val field = IntegerArgumentType::class.java.getDeclaredField("max")
-                            field.isAccessible = true
-                            field.getInt(intArg)
-                        } catch(e: Exception) {
-                            Int.MAX_VALUE
-                        }
-
-                        var propFlags = 0
-                        if(min != Int.MIN_VALUE) propFlags = propFlags or 0x01
-                        if(max != Int.MAX_VALUE) propFlags = propFlags or 0x02
-
-                        "brigadier:integer" to IntegerProperties(
-                            propFlags.toByte(),
-                            if(propFlags and 0x01 != 0) min else null,
-                            if(propFlags and 0x02 != 0) max else null
-                        )
-                    }
-                    is DoubleArgumentType -> {
-                        val doubleArg = node.type as DoubleArgumentType
-
-                        val min = try {
-                            val field = DoubleArgumentType::class.java.getDeclaredField("min")
-                            field.isAccessible = true
-                            field.getDouble(doubleArg)
-                        } catch(e: Exception) {
-                            -Double.MAX_VALUE
-                        }
-
-                        val max = try {
-                            val field = DoubleArgumentType::class.java.getDeclaredField("max")
-                            field.isAccessible = true
-                            field.getDouble(doubleArg)
-                        } catch(e: Exception) {
-                            Double.MAX_VALUE
-                        }
-
-                        var propFlags = 0
-                        if(min != -Double.MAX_VALUE) propFlags = propFlags or 0x01
-                        if(max != Double.MAX_VALUE) propFlags = propFlags or 0x02
-
-                        "brigadier:double" to DoubleProperties(
-                            propFlags.toByte(),
-                            if(propFlags and 0x01 != 0) min else null,
-                            if(propFlags and 0x02 != 0) max else null
-                        )
-                    }
-                    is BoolArgumentType -> {
-                        "brigadier:bool" to null
-                    }
-                    else ->
-                        "brigadier:string" to 2
-                }
+                getParserAndProperties(node)
             } else {
                 null to null
             }
@@ -167,5 +90,97 @@ object CommandManager {
 
         val rootIndex = indexMap[dispatcher.root] ?: 0
         return Pair(graphNodes, rootIndex)
+    }
+
+    private fun traverseCommandNodes(
+        node: CommandNode<*>,
+        visited: MutableSet<CommandNode<*>>,
+        ordering: MutableList<CommandNode<*>>
+    ) {
+        if(visited.contains(node)) return
+        visited.add(node)
+
+        for(child in node.children) {
+            traverseCommandNodes(child, visited, ordering)
+        }
+
+        node.redirect?.let { traverseCommandNodes(it, visited, ordering) }
+        ordering.add(node)
+    }
+
+    private fun getParserAndProperties(node: ArgumentCommandNode<*, *>): Pair<String?, Any?> {
+        return when(node.type) {
+            is StringArgumentType ->
+                "brigadier:string" to StringTypes.GREEDY
+            is IntegerArgumentType -> {
+                val (min, max) = handleNumberArgumentType(
+                    node.type as IntegerArgumentType,
+                    "min",
+                    "max",
+                    -Int.MAX_VALUE,
+                    Int.MAX_VALUE
+                )
+
+                var propFlags = 0
+                if(min != Int.MIN_VALUE) propFlags = propFlags or 0x01
+                if(max != Int.MAX_VALUE) propFlags = propFlags or 0x02
+
+                "brigadier:integer" to IntegerProperties(
+                    propFlags.toByte(),
+                    if(propFlags and 0x01 != 0) min.toInt() else null,
+                    if(propFlags and 0x02 != 0) max.toInt() else null
+                )
+            }
+            is DoubleArgumentType -> {
+                val (min, max) = handleNumberArgumentType(
+                    node.type as DoubleArgumentType,
+                    "min",
+                    "max",
+                    -Double.MAX_VALUE,
+                    Double.MAX_VALUE
+                )
+
+                var propFlags = 0
+                if(min != -Double.MAX_VALUE) propFlags = propFlags or 0x01
+                if(max != Double.MAX_VALUE) propFlags = propFlags or 0x02
+
+                "brigadier:double" to DoubleProperties(
+                    propFlags.toByte(),
+                    if(propFlags and 0x01 != 0) min.toDouble() else null,
+                    if(propFlags and 0x02 != 0) max.toDouble() else null
+                )
+            }
+            is BoolArgumentType -> {
+                "brigadier:bool" to null
+            }
+            else ->
+                "brigadier:string" to 2
+        }
+    }
+
+    private fun <T> handleNumberArgumentType(
+        type: T,
+        minFieldName: String,
+        maxFieldName: String,
+        minDefault: Number,
+        maxDefault: Number
+    ): Pair<Number, Number> {
+        val min = try {
+            val field = type!!::class.java.getDeclaredField(minFieldName)
+            field.isAccessible = true
+            field.get(type) as Number
+        } catch(e: NoSuchFieldException) {
+            minDefault
+        }
+
+        val max = try {
+            val field = type!!::class.java.getDeclaredField(maxFieldName)
+            field.isAccessible = true
+            field.get(type) as Number
+        } catch(e: NoSuchFieldException) {
+            maxDefault
+        }
+
+        return min to max
     }
 }
