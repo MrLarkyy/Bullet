@@ -46,8 +46,9 @@ object CommandManager {
     }
 
     /**
-     * Builds a command graph from the command dispatcher, this is called whenever the server is sending what commands are
-     * available to the client, so that the client knows what commands are available and what the structure of them is
+     * Builds a command graph from the command dispatcher
+     * this is called whenever the server is sending what commands are available to the client,
+     * so that the client knows what commands are available and what the structure of them is
      *
      * @param dispatcher The command dispatcher
      * @return A pair of the command graph and the index of the root node

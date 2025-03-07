@@ -7,7 +7,9 @@ import com.aznos.commands.data.GraphCommandNode
 import java.io.IOException
 
 /**
- * This packet is sent to the client when the client joins the game and is used to declare the commands that the client can use
+ * This packet is sent to the client when the client joins the game
+ * and is used to declare the commands that the client can use
+ *
  * See [GraphCommandNode] for more information on what the flags mean
  *
  * @param nodes The nodes of the command graph

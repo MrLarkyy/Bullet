@@ -7,7 +7,7 @@ package com.aznos.commands.data
  * @property QUOTABLE A string that is in quotation marks
  * @property GREEDY A string that can be multiple words without quotations
  */
-enum class StringTypes(id: Int) {
+enum class StringTypes(val id: Int) {
     SINGLE(0),
     QUOTABLE(1),
     GREEDY(2)
