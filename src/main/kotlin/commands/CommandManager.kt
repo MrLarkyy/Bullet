@@ -1,12 +1,10 @@
 package com.aznos.commands
 
-import com.aznos.Bullet
 import com.aznos.commands.data.DoubleProperties
 import com.aznos.commands.data.IntegerProperties
 import com.aznos.commands.data.StringTypes
-import com.aznos.datatypes.StringType
 import com.aznos.entity.player.Player
-import com.aznos.packets.data.GraphCommandNode
+import com.aznos.commands.data.GraphCommandNode
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.arguments.DoubleArgumentType
@@ -20,9 +18,17 @@ import com.mojang.brigadier.tree.LiteralCommandNode
 import com.mojang.brigadier.tree.RootCommandNode
 import net.kyori.adventure.text.Component
 
+/**
+ * Manages the registration and execution of commands.
+ *
+ * @property dispatcher The command dispatcher
+ */
 object CommandManager {
     val dispatcher = CommandDispatcher<Player>()
 
+    /**
+     * Registers the default BulletMC commands with the command dispatcher
+     */
     fun registerCommands() {
         dispatcher.register(
             LiteralArgumentBuilder.literal<Player>("say")
@@ -39,6 +45,13 @@ object CommandManager {
         )
     }
 
+    /**
+     * Builds a command graph from the command dispatcher, this is called whenever the server is sending what commands are
+     * available to the client, so that the client knows what commands are available and what the structure of them is
+     *
+     * @param dispatcher The command dispatcher
+     * @return A pair of the command graph and the index of the root node
+     */
     fun buildCommandGraphFromDispatcher(dispatcher: CommandDispatcher<*>): Pair<List<GraphCommandNode>, Int> {
         val visited = mutableSetOf<CommandNode<*>>()
         val ordering = mutableListOf<CommandNode<*>>()
@@ -92,6 +105,14 @@ object CommandManager {
         return Pair(graphNodes, rootIndex)
     }
 
+    /**
+     * Traverses the command nodes in the dispatcher and adds them to the ordering list
+     * This also looks for any child nodes and redirects
+     *
+     * @param node The current node
+     * @param visited The set of visited nodes
+     * @param ordering The list of ordered nodes
+     */
     private fun traverseCommandNodes(
         node: CommandNode<*>,
         visited: MutableSet<CommandNode<*>>,
@@ -108,6 +129,13 @@ object CommandManager {
         ordering.add(node)
     }
 
+    /**
+     * Gets the parser and properties for an argument command node so the client knows what property
+     * is of what type
+     *
+     * @param node The argument command node
+     * @return A pair of the parser and properties
+     */
     private fun getParserAndProperties(node: ArgumentCommandNode<*, *>): Pair<String?, Any?> {
         return when(node.type) {
             is StringArgumentType ->
@@ -158,6 +186,17 @@ object CommandManager {
         }
     }
 
+    /**
+     * Helper function to handle the number argument types
+     *
+     * @param type The argument type [IntegerArgumentType] or [DoubleArgumentType]
+     * @param minFieldName The name of the min field
+     * @param maxFieldName The name of the max field
+     * @param minDefault The default min value
+     * @param maxDefault The default max value
+     *
+     * @return A pair of the min and max values
+     */
     private fun <T> handleNumberArgumentType(
         type: T,
         minFieldName: String,

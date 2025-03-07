@@ -3,9 +3,16 @@ package com.aznos.packets.play.out
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet
-import com.aznos.packets.data.GraphCommandNode
+import com.aznos.commands.data.GraphCommandNode
 import java.io.IOException
 
+/**
+ * This packet is sent to the client when the client joins the game and is used to declare the commands that the client can use
+ * See [GraphCommandNode] for more information on what the flags mean
+ *
+ * @param nodes The nodes of the command graph
+ * @param rootIndex The index of the root node in the command graph
+ */
 class ServerDeclareCommandsPacket(
     nodes: List<GraphCommandNode>,
     rootIndex: Int
