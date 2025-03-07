@@ -4,6 +4,9 @@ import com.aznos.packets.play.out.ServerChunkPacket
 import com.aznos.Bullet
 import com.aznos.ClientSession
 import com.aznos.GameState
+import com.aznos.commands.CommandCodes
+import com.aznos.commands.CommandManager
+import com.aznos.commands.CommandManager.buildCommandGraphFromDispatcher
 import com.aznos.entity.player.Player
 import com.aznos.events.*
 import com.aznos.packets.data.ServerStatusResponse
@@ -22,6 +25,7 @@ import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
+import com.aznos.packets.play.out.ServerDeclareCommandsPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket
 import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
 import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
@@ -165,6 +169,30 @@ class PacketHandler(
             return
         }
 
+        if(message.startsWith('/')) {
+            val command = message.substring(1)
+            val commandSource = client.player
+
+            val result = CommandManager.dispatcher.execute(command, commandSource)
+            if(result != CommandCodes.SUCCESS.id) {
+                when(result) {
+                    CommandCodes.UNKNOWN.id ->
+                        client.sendMessage(Component.text("Unknown command")
+                            .color(NamedTextColor.RED))
+
+                    CommandCodes.ILLEGAL_ARGUMENT.id ->
+                        client.sendMessage(Component.text("Invalid command syntax, try typing /help")
+                            .color(NamedTextColor.RED))
+
+                    CommandCodes.INVALID_PERMISSIONS.id ->
+                        client.sendMessage(Component.text("You don't have permission to use this command")
+                            .color(NamedTextColor.RED))
+                }
+            }
+
+            return
+        }
+
         val formattedMessage = message.replace('&', '§')
 
         val event = PlayerChatEvent(client.player.username, formattedMessage)
@@ -254,6 +282,9 @@ class PacketHandler(
         client.sendPacket(ServerChunkPacket(0, 0))
 
         sendSpawnPlayerPackets(player)
+
+        val (nodes, rootIndex) = buildCommandGraphFromDispatcher(CommandManager.dispatcher)
+        client.sendPacket(ServerDeclareCommandsPacket(nodes, rootIndex))
     }
 
     /**
