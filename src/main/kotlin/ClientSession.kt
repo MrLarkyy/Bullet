@@ -3,15 +3,14 @@ package com.aznos
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.entity.player.Player
-import com.aznos.entity.player.data.chat.ChatMessage
 import com.aznos.events.EventManager
 import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
-import com.aznos.entity.player.data.chat.ChatPosition
 import com.aznos.packets.data.PlayerInfo
+import com.aznos.packets.newPacket.ServerPacket
 import com.aznos.packets.play.out.*
 import com.aznos.packets.status.LegacyPingRequest
 import net.kyori.adventure.text.TextComponent
@@ -155,7 +154,7 @@ class ClientSession(
 
         for(session in Bullet.players) {
             session.clientSession.sendPacket(
-                ServerPlayerInfoPacket(
+                ServerPlayerInfoUpdatePacket(
                     4,
                     listOf(
                         PlayerInfo(
@@ -178,13 +177,14 @@ class ClientSession(
      *
      * @param packet The packet to be sent
      */
-    fun sendPacket(packet: Packet) {
+    fun sendPacket(serverPacket: ServerPacket) {
         if(isClosed()) {
             Bullet.logger.warn("Tried to send a packet to a closed connection")
             return
         }
 
-        out.write(packet.retrieveData())
+        serverPacket.write()
+        out.write(serverPacket.retrieveData)
         out.flush()
     }
 
@@ -192,7 +192,7 @@ class ClientSession(
         for(otherPlayer in Bullet.players) {
             if(otherPlayer.clientSession != this) {
                 otherPlayer.clientSession.sendPacket(
-                    ServerPlayerInfoPacket(
+                    ServerPlayerInfoUpdatePacket(
                         0,
                         listOf(
                             PlayerInfo(
@@ -219,7 +219,7 @@ class ClientSession(
                 )
 
                 sendPacket(
-                    ServerPlayerInfoPacket(
+                    ServerPlayerInfoUpdatePacket(
                         0,
                         listOf(
                             PlayerInfo(
