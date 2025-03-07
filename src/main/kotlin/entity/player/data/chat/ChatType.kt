@@ -1,6 +1,7 @@
 package com.aznos.entity.player.data.chat
 
 import net.kyori.adventure.text.Component
+import java.io.DataInputStream
 import java.io.DataOutputStream
 
 data class ChatType(
@@ -17,7 +18,16 @@ data class ChatType(
     )
 
     fun writeDirect(os: DataOutputStream) {
+        chatDecoration.write(os)
+        narrationDecoration.write(os)
+    }
 
+    companion object {
+        fun readDirect(input: DataInputStream): ChatType {
+            val chatDeco = ChatTypeDecoration.read(input)
+            val narrDeco = ChatTypeDecoration.read(input)
+            return ChatType(chatDeco, null, narrDeco, null)
+        }
     }
 
 

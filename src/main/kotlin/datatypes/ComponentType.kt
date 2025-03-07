@@ -1,22 +1,24 @@
 package com.aznos.datatypes
 
-import com.aznos.util.adventure.AdventureNBTSerializer
+import com.aznos.datatypes.StringType.readString
+import com.aznos.datatypes.StringType.writeString
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
-import java.time.Instant
 
 object ComponentType {
 
     @Throws(IOException::class)
     fun DataInputStream.readComponent(): Component {
-        // TODO
+        val json = readString()
+        return GsonComponentSerializer.gson().deserialize(json)
     }
 
     @Throws(IOException::class)
     fun DataOutputStream.writeComponent(component: Component) {
-        val nbt = AdventureNBTSerializer.serialize(component)
-
+        val json = GsonComponentSerializer.gson().serialize(component)
+        this.writeString(json)
     }
 }

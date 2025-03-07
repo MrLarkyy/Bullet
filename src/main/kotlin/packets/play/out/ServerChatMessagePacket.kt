@@ -1,5 +1,7 @@
 package com.aznos.packets.play.out
 
+import com.aznos.datatypes.ChatTypeBoundType.writeChatTypeBoundNetwork
+import com.aznos.datatypes.ComponentType.writeComponent
 import com.aznos.datatypes.FilterMaskType.writeFilterMask
 import com.aznos.datatypes.InstantType.writeInstant
 import com.aznos.datatypes.LastSeenMessagesPacked.writeLastSeenMessagesPacked
@@ -19,7 +21,7 @@ import com.aznos.packets.ServerPacket
  */
 class ServerChatMessagePacket(
     message: ChatMessage
-) : ServerPacket(0x0E) {
+) : ServerPacket(0x3B) {
     init {
         wrapper.writeUUID(message.senderUUID)
         wrapper.writeVarInt(message.index)
@@ -31,8 +33,8 @@ class ServerChatMessagePacket(
         wrapper.writeLong(message.salt)
         wrapper.writeLastSeenMessagesPacked(message.lastSeenMessagesPacked)
         // TODO: Kyori Component Serialization - NBT (since 1.21.4+)
-        wrapper.writeOptional(message.unsignedChatContent) { os, v ->}
+        wrapper.writeOptional(message.unsignedChatContent) { os, v -> os.writeComponent(v)}
         wrapper.writeFilterMask(message.filterMask)
-        // TODO: Chat Type Bound writer
+        wrapper.writeChatTypeBoundNetwork(message.chatFormatting)
     }
 }

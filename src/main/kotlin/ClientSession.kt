@@ -3,19 +3,16 @@ package com.aznos
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.entity.player.Player
+import com.aznos.entity.player.data.chat.ChatMessage
 import com.aznos.events.EventManager
 import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
-import com.aznos.packets.play.out.ServerChatMessagePacket
-import com.aznos.packets.play.out.ServerKeepAlivePacket
-import com.aznos.packets.play.out.ServerPlayDisconnectPacket
 import com.aznos.entity.player.data.chat.ChatPosition
 import com.aznos.packets.data.PlayerInfo
-import com.aznos.packets.play.out.ServerPlayerInfoPacket
-import com.aznos.packets.play.out.ServerSpawnPlayerPacket
+import com.aznos.packets.play.out.*
 import com.aznos.packets.status.LegacyPingRequest
 import net.kyori.adventure.text.TextComponent
 import java.io.BufferedInputStream
@@ -138,7 +135,7 @@ class ClientSession(
      * @param message The message to be sent to the client
      */
     fun sendMessage(message: TextComponent) {
-        sendPacket(ServerChatMessagePacket(message, ChatPosition.CHAT, null))
+        sendPacket(ServerSystemChatMessagePacket(message, false))
     }
 
     /**

@@ -1,13 +1,18 @@
 package com.aznos.entity.player.data.chat
 
+import com.aznos.datatypes.CollectionType.readCollection
 import com.aznos.datatypes.CollectionType.writeCollection
+import com.aznos.datatypes.StringType.readString
 import com.aznos.datatypes.StringType.writeString
+import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.datatypes.VarInt.writeVarInt
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import java.io.DataInputStream
 import java.io.DataOutputStream
 
 data class ChatTypeDecoration(
@@ -34,7 +39,7 @@ data class ChatTypeDecoration(
         os.writeCollection(parameters) { _, v ->
             os.writeVarInt(v.ordinal)
         }
-        //  TODO: Write Style
+        os.writeString(GsonComponentSerializer.gson().serializer().toJson(style))
     }
 
     enum class Parameter(val id: String, val selector: (Component, ChatType.Bound) -> Component) {
@@ -60,6 +65,14 @@ data class ChatTypeDecoration(
         }
         fun teamMessage(translationKey: String): ChatTypeDecoration {
             return ChatTypeDecoration(translationKey, listOf(Parameter.TARGET,Parameter.SENDER, Parameter.CONTENT), Style.empty())
+        }
+
+        fun read(input: DataInputStream): ChatTypeDecoration {
+            val translationKey = input.readString()
+            val parameters = input.readCollection({ i -> ArrayList(i)}, { _ -> Parameter.entries[input.readVarInt()] })
+            val style: Style = GsonComponentSerializer.gson().serializer().fromJson(input.readString(), Style::class.java)
+
+            return ChatTypeDecoration(translationKey, parameters, style)
         }
     }
 
