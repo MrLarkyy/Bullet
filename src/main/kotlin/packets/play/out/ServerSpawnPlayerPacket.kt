@@ -3,6 +3,7 @@ package com.aznos.packets.play.out
 import com.aznos.datatypes.UUIDType.writeUUID
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet
+import com.aznos.packets.ServerPacket
 import java.util.UUID
 
 /**
@@ -16,7 +17,7 @@ class ServerSpawnPlayerPacket(
     z: Double,
     yaw: Float,
     pitch: Float,
-) : Packet(0x04) {
+) : ServerPacket(0x04) {
     init {
         wrapper.writeVarInt(entityID)
         wrapper.writeUUID(uuid)

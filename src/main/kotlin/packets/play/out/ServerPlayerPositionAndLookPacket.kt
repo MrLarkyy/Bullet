@@ -2,6 +2,7 @@ package com.aznos.packets.play.out
 
 import com.aznos.entity.player.data.Location
 import com.aznos.packets.Packet
+import com.aznos.packets.ServerPacket
 
 /**
  * Sends the player position and look packet to the client
@@ -11,7 +12,7 @@ import com.aznos.packets.Packet
  */
 class ServerPlayerPositionAndLookPacket(
     location: Location
-) : Packet(0x34) {
+) : ServerPacket(0x34) {
     init {
         wrapper.writeDouble(location.x)
         wrapper.writeDouble(location.y)

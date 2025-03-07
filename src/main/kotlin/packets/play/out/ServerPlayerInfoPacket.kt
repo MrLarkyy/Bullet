@@ -4,6 +4,7 @@ import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.UUIDType.writeUUID
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet
+import com.aznos.packets.ServerPacket
 import com.aznos.packets.data.PlayerInfo
 
 /**
@@ -16,7 +17,7 @@ import com.aznos.packets.data.PlayerInfo
 class ServerPlayerInfoPacket(
     private val action: Int,
     private val players: List<PlayerInfo>
-) : Packet(0x32) {
+) : ServerPacket(0x32) {
     init {
         wrapper.writeVarInt(action)
         wrapper.writeVarInt(players.size)

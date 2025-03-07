@@ -4,6 +4,7 @@ import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet
 import com.aznos.entity.player.data.GameMode
+import com.aznos.packets.ServerPacket
 import dev.dewy.nbt.Nbt
 import dev.dewy.nbt.tags.collection.CompoundTag
 
@@ -33,7 +34,7 @@ class ServerJoinGamePacket(
     enableRespawnScreen: Boolean,
     isDebug: Boolean,
     isFlat: Boolean
-) : Packet(0x24) {
+) : ServerPacket(0x24) {
     init {
         wrapper.writeInt(entityID)
         wrapper.writeBoolean(hardcore)

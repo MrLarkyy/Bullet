@@ -12,7 +12,7 @@ import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.play.out.ServerChatMessagePacket
 import com.aznos.packets.play.out.ServerKeepAlivePacket
 import com.aznos.packets.play.out.ServerPlayDisconnectPacket
-import com.aznos.entity.player.data.ChatPosition
+import com.aznos.entity.player.data.chat.ChatPosition
 import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.play.out.ServerPlayerInfoPacket
 import com.aznos.packets.play.out.ServerSpawnPlayerPacket

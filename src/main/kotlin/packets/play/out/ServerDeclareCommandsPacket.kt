@@ -4,6 +4,7 @@ import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet
 import com.aznos.commands.data.GraphCommandNode
+import com.aznos.packets.ServerPacket
 import java.io.IOException
 
 /**
@@ -18,7 +19,7 @@ import java.io.IOException
 class ServerDeclareCommandsPacket(
     nodes: List<GraphCommandNode>,
     rootIndex: Int
-) : Packet(0x10) {
+) : ServerPacket(0x10) {
     init {
         wrapper.writeVarInt(nodes.size)
         for(node in nodes) {

@@ -1,10 +1,18 @@
 package com.aznos.entity.player.data
 
 @Suppress("unused")
-enum class GameMode(var id: Int) {
-    NONE(-1),
-    SURVIVAL(0),
-    CREATIVE(1),
-    ADVENTURE(2),
-    SPECTATOR(3);
+enum class GameMode {
+    SURVIVAL,
+    CREATIVE,
+    ADVENTURE,
+    SPECTATOR;
+
+    val id: Int
+        get() {
+            return ordinal
+        }
+
+    companion object {
+        fun byId(id: Int): GameMode? = entries.getOrNull(id)
+    }
 }

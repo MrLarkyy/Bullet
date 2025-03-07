@@ -2,6 +2,7 @@ package com.aznos.packets.play.out
 
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet
+import com.aznos.packets.ServerPacket
 import dev.dewy.nbt.Nbt
 import dev.dewy.nbt.tags.collection.CompoundTag
 import java.io.ByteArrayOutputStream
@@ -16,7 +17,7 @@ import java.io.ByteArrayOutputStream
 class ServerChunkPacket(
     x: Int,
     z: Int
-) : Packet(0x20) {
+) : ServerPacket(0x20) {
     init {
         // Chunk coordinates
         wrapper.writeInt(x)
