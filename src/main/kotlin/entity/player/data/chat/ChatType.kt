@@ -1,6 +1,7 @@
 package com.aznos.entity.player.data.chat
 
 import net.kyori.adventure.text.Component
+import java.io.DataOutputStream
 
 data class ChatType(
     var chatDecoration:ChatTypeDecoration,
@@ -14,6 +15,10 @@ data class ChatType(
         var name: Component,
         var target: Component?
     )
+
+    fun writeDirect(os: DataOutputStream) {
+
+    }
 
 
     enum class NarrationPriority(val id: String) {
