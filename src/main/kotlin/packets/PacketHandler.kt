@@ -27,7 +27,6 @@ import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
 import com.aznos.packets.play.out.ServerDeclareCommandsPacket
 import com.aznos.packets.play.out.entity.ServerSpawnEntityPacket
-import com.aznos.packets.play.out.entity.ServerEntityMovementPacket
 import com.aznos.packets.play.out.entity.ServerEntityPositionAndRotationPacket
 import com.aznos.packets.play.out.entity.ServerEntityPositionPacket
 import com.aznos.packets.play.out.entity.ServerEntityRotationPacket
