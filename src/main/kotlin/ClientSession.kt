@@ -3,25 +3,19 @@ package com.aznos
 import com.aznos.datatypes.VarInt
 import com.aznos.datatypes.VarInt.readVarInt
 import com.aznos.entity.player.Player
-import com.aznos.entity.player.data.chat.ChatMessage
 import com.aznos.events.EventManager
 import com.aznos.events.PlayerQuitEvent
 import com.aznos.packets.Packet
 import com.aznos.packets.PacketHandler
 import com.aznos.packets.PacketRegistry
 import com.aznos.packets.configuration.out.ServerConfigRegistryData
+import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
-import com.aznos.packets.play.out.ServerChatMessagePacket
-import com.aznos.packets.play.out.ServerKeepAlivePacket
-import com.aznos.packets.play.out.ServerPlayDisconnectPacket
-import com.aznos.player.ChatPosition
-import com.aznos.registry.Registries
-import dev.dewy.nbt.tags.collection.CompoundTag
-import com.aznos.entity.player.data.chat.ChatPosition
-import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.play.out.*
 import com.aznos.packets.status.LegacyPingRequest
+import com.aznos.registry.Registries
+import dev.dewy.nbt.tags.collection.CompoundTag
 import net.kyori.adventure.text.TextComponent
 import java.io.BufferedInputStream
 import java.io.DataInputStream
@@ -106,7 +100,7 @@ class ClientSession(
                         .newInstance(data)
                     handler.handle(packet)
                 } else {
-                    Bullet.logger.warn("Unhandled packet with raw packet ID: 0x$id (Hex: 0x${id.toString(16)})")
+                    Bullet.logger.warning("Unhandled packet with raw packet ID: 0x$id (Hex: 0x${id.toString(16)})")
                 }
             }
         } catch (e: EOFException) {
@@ -225,7 +219,7 @@ class ClientSession(
      */
     fun sendPacket(packet: Packet) {
         if(isClosed()) {
-            Bullet.logger.warn("Tried to send a packet to a closed connection")
+            Bullet.logger.warning("Tried to send a packet to a closed connection")
             return
         }
 

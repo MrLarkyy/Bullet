@@ -2,11 +2,8 @@ package com.aznos.packets.play.out
 
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.VarInt.writeVarInt
+import com.aznos.entity.player.data.GameMode
 import com.aznos.packets.Packet
-import com.aznos.player.GameMode
-import dev.dewy.nbt.Nbt
-import dev.dewy.nbt.tags.collection.CompoundTag
-import kotlin.math.max
 
 /**
  * Packet sent to the client that sends all the information needed to join the game

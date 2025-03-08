@@ -7,6 +7,8 @@ import com.aznos.commands.CommandCodes
 import com.aznos.commands.CommandManager
 import com.aznos.commands.CommandManager.buildCommandGraphFromDispatcher
 import com.aznos.entity.player.Player
+import com.aznos.entity.player.data.GameMode
+import com.aznos.entity.player.data.Location
 import com.aznos.events.*
 import com.aznos.packets.configuration.out.ServerConfigFinishPacket
 import com.aznos.packets.data.ChunkData
@@ -16,29 +18,21 @@ import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
-import com.aznos.packets.play.out.ServerGameEvent
-import com.aznos.packets.play.out.ServerJoinGamePacket
-import com.aznos.packets.play.out.ServerLevelChunkWithLightPacket
-import com.aznos.packets.play.out.ServerSetChunkCacheCenterPacket
-import com.aznos.packets.play.out.ServerSyncPlayerPosition
-import com.aznos.packets.status.`in`.ClientStatusPingPacket
-import com.aznos.packets.status.`in`.ClientStatusRequestPacket
-import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.player.GameMode
-import dev.dewy.nbt.api.registry.TagTypeRegistry
-import dev.dewy.nbt.tags.collection.CompoundTag
-import com.aznos.entity.player.data.GameMode
-import com.aznos.entity.player.data.Location
 import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
-import com.aznos.packets.play.out.ServerDeclareCommandsPacket
-import com.aznos.packets.play.out.ServerSpawnPlayerPacket
+import com.aznos.packets.play.out.*
 import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
 import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
 import com.aznos.packets.play.out.movement.ServerEntityPositionPacket
 import com.aznos.packets.play.out.movement.ServerEntityRotationPacket
+import com.aznos.packets.status.`in`.ClientStatusPingPacket
+import com.aznos.packets.status.`in`.ClientStatusRequestPacket
+import com.aznos.packets.status.out.ServerStatusPongPacket
+import com.aznos.registry.Registries
+import dev.dewy.nbt.api.registry.TagTypeRegistry
+import dev.dewy.nbt.tags.collection.CompoundTag
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -252,15 +246,14 @@ class PacketHandler(
         client.isClientValid(packet)
 
         val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:${packet.username}").toByteArray())
-        client.username = packet.username
-        client.uuid = uuid
+        client.player.username = packet.username
+        client.player.uuid = uuid
         val username = packet.username
         if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) {
             client.disconnect("Invalid username")
             return
         }
 
-        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:$username").toByteArray())
         val player = initializePlayer(username, uuid)
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, packet.username))
@@ -271,33 +264,18 @@ class PacketHandler(
         client.sendPacket(ServerConfigFinishPacket())
         client.state = GameState.PLAY
 
-        client.sendPacket(
-            ServerJoinGamePacket(
-                player.entityID,
-                false,
-                player.gameMode,
-                "minecraft:overworld",
-                Bullet.dimensionCodec!!,
-                Bullet.max_players,
-                8,
-                reducedDebugInfo = false,
-                enableRespawnScreen = true,
-                isDebug = false,
-                isFlat = true
-            )
-        )
         client.sendPacket(ServerJoinGamePacket(
             player.entityID,
             false,
             listOf("minecraft:overworld"),
             0,
             8,
-            false,
-            true,
-            0,
-            "minecraft:overworld",
-            GameMode.SPECTATOR,
-            false
+            reducedDebugInfo = false,
+            enableRespawnScreen = true,
+            dimensionType = 0,
+            dimensionName = "minecraft:overworld",
+            gameMode = GameMode.SPECTATOR,
+            isFlat = false
         ))
 
         client.sendPacket(ServerGameEvent(13, 0f))
@@ -308,7 +286,7 @@ class PacketHandler(
             putLongArray("MOTION_BLOCKING", ChunkData.createHeightmapData())
             putLongArray("WORLD_SURFACE", ChunkData.createHeightmapData())
         }
-        client.sendPacket(ServerPlayerPositionAndLookPacket(player.location))
+        //client.sendPacket(ServerPlayerPositionAndLookPacket(player.location))
 
         val joinEvent = PlayerJoinEvent(client.player.username)
         EventManager.fire(joinEvent)
@@ -332,9 +310,6 @@ class PacketHandler(
         Bullet.players.add(player)
         client.sendPlayerSpawnPacket()
         client.scheduleKeepAlive()
-        client.sendPacket(ServerChunkPacket(0, 0))
-
-        sendSpawnPlayerPackets(player)
 
         val (nodes, rootIndex) = buildCommandGraphFromDispatcher(CommandManager.dispatcher)
         client.sendPacket(ServerDeclareCommandsPacket(nodes, rootIndex))
@@ -418,39 +393,5 @@ class PacketHandler(
 
         client.player = player
         return player
-    }
-
-    private fun sendSpawnPlayerPackets(player: Player) {
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
-                otherPlayer.clientSession.sendPacket(
-                    ServerSpawnPlayerPacket(
-                        player.entityID,
-                        player.uuid,
-                        player.location.x,
-                        player.location.y,
-                        player.location.z,
-                        player.location.yaw,
-                        player.location.pitch
-                    )
-                )
-            }
-        }
-
-        for(existingPlayer in Bullet.players) {
-            if(existingPlayer != player) {
-                client.sendPacket(
-                    ServerSpawnPlayerPacket(
-                        existingPlayer.entityID,
-                        existingPlayer.uuid,
-                        existingPlayer.location.x,
-                        existingPlayer.location.y,
-                        existingPlayer.location.z,
-                        existingPlayer.location.yaw,
-                        existingPlayer.location.pitch
-                    )
-                )
-            }
-        }
     }
 }

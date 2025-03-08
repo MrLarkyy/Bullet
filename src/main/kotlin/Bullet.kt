@@ -1,12 +1,17 @@
 package com.aznos
 
+import com.aznos.entity.player.Player
 import com.google.gson.JsonParser
 import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
+import java.io.IOException
 import java.io.InputStreamReader
+import java.net.BindException
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.util.Base64
 import java.util.concurrent.Executors
+import java.util.logging.Logger
 
 /**
  * This is where the core of the bullet server logic will be housed
@@ -20,8 +25,7 @@ object Bullet : AutoCloseable {
     var max_players: Int = 20
     var motd: String = "§6Runs as fast as a bullet"
 
-    val logger: Logger = LogManager.getLogger()
-
+    val logger = Logger.getLogger("Bullet")
     private val pool = Executors.newCachedThreadPool()
     private var server: ServerSocket? = null
     val players = mutableListOf<Player>()
@@ -38,7 +42,7 @@ object Bullet : AutoCloseable {
                 bind(InetSocketAddress(host, port))
             }
         } catch(e: BindException) {
-            logger.error("Failed to bind to $host:$port, is the address already in use?")
+            logger.warning("Failed to bind to $host:$port, is the address already in use?")
             return
         }
 
@@ -47,10 +51,10 @@ object Bullet : AutoCloseable {
             InputStreamReader(it)
         }
 
-        val parsed = JsonParser.parseReader(reader).asJsonObject
-        dimensionCodec = CompoundTag().fromJson(parsed, 0, TagTypeRegistry())
+        //val parsed = JsonParser.parseReader(reader).asJsonObject
+        //dimensionCodec = CompoundTag().fromJson(parsed, 0, TagTypeRegistry())
 
-        CommandManager.registerCommands()
+        //CommandManager.registerCommands()
 
         logger.info("Bullet server started at $host:$port")
 
@@ -75,7 +79,7 @@ object Bullet : AutoCloseable {
         try {
             val stream = javaClass.getResourceAsStream(resourcePath)
             if(stream == null) {
-                logger.error("Favicon resource not found at: $resourcePath")
+                logger.warning("Favicon resource not found at: $resourcePath")
                 return
             }
 
@@ -84,9 +88,9 @@ object Bullet : AutoCloseable {
 
             favicon = "data:image/png;base64,$base64String"
         } catch(e: IOException) {
-            logger.error("Failed to read favicon resource at: $resourcePath")
+            logger.warning("Failed to read favicon resource at: $resourcePath")
         } catch(e: IllegalArgumentException) {
-            logger.error("Failed to encode favicon resource to base64")
+            logger.warning("Failed to encode favicon resource to base64")
         }
     }
 
