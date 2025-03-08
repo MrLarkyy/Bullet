@@ -10,6 +10,10 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+
+    maven {
+        url = uri("https://libraries.minecraft.net")
+    }
 }
 
 dependencies {
@@ -18,6 +22,8 @@ dependencies {
     implementation("dev.dewy:nbt:1.5.1")
     implementation("net.kyori:adventure-api:4.19.0")
     implementation("net.kyori:adventure-text-serializer-gson:4.19.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.24.3")
+    implementation("com.mojang:brigadier:1.0.18")
 }
 
 detekt {
@@ -31,6 +37,7 @@ application {
 
 tasks.register("runServer") {
     dependsOn("detekt", "run")
+    group = "bullet"
 }
 
 kotlin {
