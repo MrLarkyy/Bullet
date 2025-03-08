@@ -16,6 +16,5 @@ data class ChatMessage(
     var unsignedChatContent: Component?,
     var filterMask: FilterMask,
     var chatFormatting: ChatType.Bound
-    // TODO: Chat Type
 ) {
 }

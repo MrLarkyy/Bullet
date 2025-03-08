@@ -18,10 +18,22 @@ import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
+import com.aznos.packets.play.out.ServerJoinGamePacket
+import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
+import com.aznos.packets.status.`in`.ClientStatusPingPacket
+import com.aznos.packets.status.`in`.ClientStatusRequestPacket
+import com.aznos.packets.status.out.ServerStatusPongPacket
+import com.aznos.entity.player.data.GameMode
+import com.aznos.entity.player.data.Location
 import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
+import com.aznos.packets.play.out.ServerDeclareCommandsPacket
+import com.aznos.packets.play.out.entity.ServerSpawnEntityPacket
+import com.aznos.packets.play.out.entity.ServerEntityPositionAndRotationPacket
+import com.aznos.packets.play.out.entity.ServerEntityPositionPacket
+import com.aznos.packets.play.out.entity.ServerEntityRotationPacket
 import com.aznos.packets.play.out.*
 import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
 import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
@@ -39,7 +51,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
-import java.util.*
+import java.util.UUID
 
 /**
  * Handles all incoming packets by dispatching them to the appropriate handler methods
@@ -77,12 +89,14 @@ class PacketHandler(
 
         for(otherPlayer in Bullet.players) {
             if(otherPlayer != player) {
-                otherPlayer.clientSession.sendPacket(ServerEntityRotationPacket(
+                otherPlayer.clientSession.sendPacket(
+                    ServerEntityRotationPacket(
                     player.entityID,
                     player.location.yaw,
                     player.location.pitch,
                     player.onGround
-                ))
+                )
+                )
             }
         }
     }
