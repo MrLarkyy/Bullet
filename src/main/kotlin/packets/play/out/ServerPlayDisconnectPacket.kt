@@ -2,6 +2,7 @@ package com.aznos.packets.play.out
 
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.packets.Packet
+import com.aznos.packets.ServerPacket
 import com.google.gson.JsonObject
 
 /**
@@ -9,7 +10,7 @@ import com.google.gson.JsonObject
  */
 class ServerPlayDisconnectPacket(
     message: String
-) : Packet(0x19) {
+) : ServerPacket(0x19) {
     init {
         val jsonObj = JsonObject()
         jsonObj.addProperty("text", message)

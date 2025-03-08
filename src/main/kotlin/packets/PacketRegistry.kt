@@ -4,6 +4,10 @@ import com.aznos.GameState
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
+import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
+import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
+import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
+import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import packets.handshake.HandshakePacket
@@ -50,6 +54,10 @@ object PacketRegistry {
         val playPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
             this[0x03] = ClientChatMessagePacket::class.java
             this[0x10] = ClientKeepAlivePacket::class.java
+            this[0x12] = ClientPlayerPositionPacket::class.java
+            this[0x13] = ClientPlayerPositionAndRotation::class.java
+            this[0x14] = ClientPlayerRotation::class.java
+            this[0x15] = ClientPlayerMovement::class.java
         }
 
         packets[GameState.PLAY] = playPackets
@@ -58,7 +66,7 @@ object PacketRegistry {
     /**
      * Get the packet by the packet ID
      *
-     * @param gameState The current gamestate
+     * @param gameState The current game state
      * @param id The ID of the packet
      * @return The class of the packet
      */

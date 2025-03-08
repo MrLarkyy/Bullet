@@ -32,6 +32,23 @@ object StringType {
         return String(data, StandardCharsets.UTF_8)
     }
 
+    @Throws(IOException::class)
+    fun DataInputStream.readString(maxLen: Int): String {
+        val len = readVarInt()
+
+        if (len > maxLen + 4) {
+            throw IOException("String length exceeds maximum allowed length of $maxLen")
+        } else if (len < 0) {
+            throw IOException("String length is negative")
+        } else {
+            val str = readString()
+            if (str.length > maxLen) {
+                throw IOException("String exceeds maximum allowed length of $maxLen")
+            }
+            return str
+        }
+    }
+
     /**
      * Writes a string to the [OutputStream]
      *
