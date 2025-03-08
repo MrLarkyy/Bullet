@@ -1,7 +1,7 @@
-package com.aznos.packets.play.out.movement
+package com.aznos.packets.play.out.entity
 
 import com.aznos.datatypes.VarInt.writeVarInt
-import com.aznos.packets.Packet
+import com.aznos.packets.newPacket.ServerPacket
 
 /**
  * For player entities either this packet or any move/look packet is sent every game tick
@@ -13,8 +13,9 @@ import com.aznos.packets.Packet
  */
 class ServerEntityMovementPacket(
     entityID: Int
-) : Packet(0x2A) {
+) : ServerPacket(key) {
     init {
         wrapper.writeVarInt(entityID)
     }
+
 }

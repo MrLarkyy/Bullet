@@ -1,4 +1,4 @@
-package com.aznos.packets.play.out
+package com.aznos.packets.play.out.chat
 
 import com.aznos.datatypes.ComponentType.writeComponent
 import com.aznos.packets.ServerPacket

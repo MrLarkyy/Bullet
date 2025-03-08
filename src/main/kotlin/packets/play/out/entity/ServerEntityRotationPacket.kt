@@ -1,4 +1,4 @@
-package com.aznos.packets.play.out.movement
+package com.aznos.packets.play.out.entity
 
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.packets.Packet

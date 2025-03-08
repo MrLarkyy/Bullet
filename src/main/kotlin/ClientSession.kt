@@ -12,6 +12,8 @@ import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.newPacket.ServerPacket
 import com.aznos.packets.play.out.*
+import com.aznos.packets.play.out.chat.ServerSystemChatMessagePacket
+import com.aznos.packets.play.out.entity.ServerSpawnEntityPacket
 import com.aznos.packets.status.LegacyPingRequest
 import net.kyori.adventure.text.TextComponent
 import java.io.BufferedInputStream
@@ -183,8 +185,7 @@ class ClientSession(
             return
         }
 
-        serverPacket.write()
-        out.write(serverPacket.retrieveData)
+        out.write(serverPacket.retrieveData())
         out.flush()
     }
 
@@ -207,7 +208,7 @@ class ClientSession(
                 )
 
                 otherPlayer.clientSession.sendPacket(
-                    ServerSpawnPlayerPacket(
+                    ServerSpawnEntityPacket(
                         player.entityID,
                         player.uuid,
                         player.location.x,
@@ -234,7 +235,7 @@ class ClientSession(
                 )
 
                 sendPacket(
-                    ServerSpawnPlayerPacket(
+                    ServerSpawnEntityPacket(
                         otherPlayer.entityID,
                         otherPlayer.uuid,
                         otherPlayer.location.x,

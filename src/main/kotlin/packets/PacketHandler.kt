@@ -26,11 +26,11 @@ import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
 import com.aznos.packets.play.out.ServerDeclareCommandsPacket
-import com.aznos.packets.play.out.ServerSpawnPlayerPacket
-import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
-import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
-import com.aznos.packets.play.out.movement.ServerEntityPositionPacket
-import com.aznos.packets.play.out.movement.ServerEntityRotationPacket
+import com.aznos.packets.play.out.entity.ServerSpawnEntityPacket
+import com.aznos.packets.play.out.entity.ServerEntityMovementPacket
+import com.aznos.packets.play.out.entity.ServerEntityPositionAndRotationPacket
+import com.aznos.packets.play.out.entity.ServerEntityPositionPacket
+import com.aznos.packets.play.out.entity.ServerEntityRotationPacket
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -75,12 +75,14 @@ class PacketHandler(
 
         for(otherPlayer in Bullet.players) {
             if(otherPlayer != player) {
-                otherPlayer.clientSession.sendPacket(ServerEntityRotationPacket(
+                otherPlayer.clientSession.sendPacket(
+                    ServerEntityRotationPacket(
                     player.entityID,
                     player.location.yaw,
                     player.location.pitch,
                     player.onGround
-                ))
+                )
+                )
             }
         }
     }
@@ -371,7 +373,7 @@ class PacketHandler(
         for(otherPlayer in Bullet.players) {
             if(otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
-                    ServerSpawnPlayerPacket(
+                    ServerSpawnEntityPacket(
                         player.entityID,
                         player.uuid,
                         player.location.x,
@@ -387,7 +389,7 @@ class PacketHandler(
         for(existingPlayer in Bullet.players) {
             if(existingPlayer != player) {
                 client.sendPacket(
-                    ServerSpawnPlayerPacket(
+                    ServerSpawnEntityPacket(
                         existingPlayer.entityID,
                         existingPlayer.uuid,
                         existingPlayer.location.x,

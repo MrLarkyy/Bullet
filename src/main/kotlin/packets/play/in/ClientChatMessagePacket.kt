@@ -16,9 +16,9 @@ import com.aznos.packets.newPacket.ResourceLocation
  * @property message The message the client sent
  */
 class ClientChatMessagePacket(data: ByteArray) :
-    ClientPacket<ClientChatMessagePacket>(data, Keyed(0x07, ResourceLocation.vanilla("chat"))) {
-
+    ClientPacket<ClientChatMessagePacket>(data, key) {
     companion object {
+        val key = Keyed(0x07, ResourceLocation.vanilla("play.in.chat"))
         const val maxMessageLength = 256
     }
 
