@@ -11,14 +11,14 @@ import dev.dewy.nbt.Nbt
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 
-class ServerChunksBiomesPacket(
+class ServerChunkWithLightPacket(
     var column: ChunkColumn,
     var lightData: LightData? = null,
     //var ignoreOldData: Boolean = false
 ) : ServerPacket(key) {
 
     companion object {
-        val key = Keyed(0x0E, ResourceLocation.vanilla("play.out.chunks_biomes"))
+        val key = Keyed(0x28, ResourceLocation.vanilla("play.out.level_chunk_with_light"))
     }
 
     override fun retrieveData(): ByteArray {
