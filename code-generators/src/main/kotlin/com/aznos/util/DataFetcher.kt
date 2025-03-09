@@ -1,11 +1,13 @@
-package com.aznos
+package com.aznos.util
 
+import com.aznos.Main
 import com.google.gson.JsonObject
 
 object DataFetcher {
 
     private val dataKeys: JsonObject = Main.gson.fromJson(Main.dataFolder.resolve("data/dataPaths.json").readText(), JsonObject::class.java).getAsJsonObject("pc").getAsJsonObject(
-        Main.VERSION)
+        Main.VERSION
+    )
     private val cache = mutableMapOf<String, JsonObject>()
 
     fun getData(key: String): JsonObject {

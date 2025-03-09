@@ -1,22 +1,25 @@
 package com.aznos.registry
 
 object Registries {
+
     private val registries = mutableListOf<Registry<*>>()
 
-    val dimension_type = DimensionTypes()
-    val biomes = BiomeTypes()
-    val wolf_variant = WolfVariantTypes()
-    val damage_type = DamageTypes()
+    val damage_type = DamageTypeRegistry().register()
+    val dimension_type = DimensionTypeRegistry().register()
+    val wolf_variant = WolfVariantRegistry().register()
+    val painting_variant = PaintingVariantRegistry().register()
+
+    val biomes = BiomeTypes().register()
 
     init {
-        register(dimension_type)
-        register(biomes)
-        register(wolf_variant)
-        register(damage_type)
+        for (registry in registries) {
+            registry.lock()
+        }
     }
 
-    private fun register(registry: Registry<*>) {
-        registries.add(registry)
-        registry.lock()
+    private fun <T> Registry<T>.register(): Registry<T> {
+        registries.add(this)
+        return this
     }
+
 }

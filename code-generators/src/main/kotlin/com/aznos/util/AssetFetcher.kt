@@ -1,5 +1,6 @@
-package com.aznos
+package com.aznos.util
 
+import com.aznos.Main
 import com.google.gson.JsonElement
 
 object AssetFetcher {

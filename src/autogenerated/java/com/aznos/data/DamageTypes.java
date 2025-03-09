@@ -3,7 +3,7 @@ package com.aznos.data;
 import java.lang.String;
 import org.jetbrains.annotations.NotNull;
 
-enum DamageTypes {
+public enum DamageTypes {
   THROWN("thrown"),
 
   GENERIC_KILL("genericKill"),
@@ -105,6 +105,6 @@ enum DamageTypes {
   public final String messageId;
 
   DamageTypes(@NotNull String messageId) {
-    this.messageId = messageId;;
+    this.messageId = messageId;
   }
 }

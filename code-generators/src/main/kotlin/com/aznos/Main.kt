@@ -1,5 +1,9 @@
 package com.aznos
 
+import com.aznos.generators.DamageTypeGenerator
+import com.aznos.generators.DimensionTypeGenerator
+import com.aznos.generators.PaintingVariantGenerator
+import com.aznos.generators.WolfVariantGenerator
 import com.google.gson.GsonBuilder
 import java.io.File
 import java.io.FileInputStream
@@ -15,7 +19,7 @@ object Main {
     private const val SKIP_DOWNLOADING = false
 
     val logger = Logger.getLogger("Bullet Code Generator")
-    val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+    val gson = GsonBuilder().disableHtmlEscaping().create()
 
     val buildFolder = File("code-generators/build/")
     val assetsFolder = buildFolder.resolve("minecraft-assets-$VERSION")
@@ -47,6 +51,9 @@ object Main {
 
         logger.info("Generating...")
         DamageTypeGenerator().generate()
+        DimensionTypeGenerator().generate()
+        WolfVariantGenerator().generate()
+        PaintingVariantGenerator().generate()
     }
 
     fun initialize() {}

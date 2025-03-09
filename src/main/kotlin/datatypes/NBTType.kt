@@ -10,7 +10,7 @@ import java.util.*
 
 object NBTType {
 
-    private val tagTypeRegistry = TagTypeRegistry()
+    val tagTypeRegistry = TagTypeRegistry()
 
     @Throws(IOException::class)
     fun DataInputStream.readNbtCompound(): CompoundTag {
