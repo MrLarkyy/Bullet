@@ -252,18 +252,17 @@ class PacketHandler(
             client.disconnect("Your client is outdated, please upgrade to Minecraft version " + Bullet.VERSION)
             return
         }
+
         client.isClientValid(packet)
 
-        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:${packet.username}").toByteArray())
-        client.player.username = packet.username
-        client.player.uuid = uuid
         val username = packet.username
+        val uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:${username}").toByteArray())
+
+        client.player = initializePlayer(username, uuid)
         if (!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) {
             client.disconnect("Invalid username")
             return
         }
-
-        val player = initializePlayer(username, uuid)
 
         client.sendPacket(ServerLoginSuccessPacket(uuid, packet.username))
         client.state = GameState.CONFIGURATION
@@ -275,7 +274,7 @@ class PacketHandler(
 
         client.sendPacket(
             ServerJoinGamePacket(
-                player.entityID,
+                client.player.entityID,
                 false,
                 listOf("minecraft:overworld"),
                 0,
@@ -389,7 +388,7 @@ class PacketHandler(
             )
         )
 
-        Bullet.players.add(player)
+        Bullet.players.add(client.player)
         client.sendPlayerSpawnPacket()
         client.scheduleKeepAlive()
 
@@ -473,7 +472,6 @@ class PacketHandler(
         player.gameMode = GameMode.CREATIVE
         player.onGround = false
 
-        client.player = player
         return player
     }
 }

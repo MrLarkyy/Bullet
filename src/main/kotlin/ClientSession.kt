@@ -190,20 +190,21 @@ class ClientSession(
         sendPacket(ServerConfigRegistryData(Registries.biomes))
         sendPacket(ServerConfigRegistryData(Registries.wolf_variant))
         sendPacket(ServerConfigRegistryData(Registries.damage_type))
-
-        sendPacket(
-            ServerConfigRegistryData(
-                ResourceLocation.vanilla("painting_variant"), listOf(
-                    ServerConfigRegistryData.RawEntry(ResourceLocation.vanilla("alban"), CompoundTag().apply {
-                        putString("asset_id", "minecraft:alban")
-                        putInt("height", 1)
-                        putInt("width", 1)
-                        putString("title", "gg")
-                        putString("author", "gg")
-                    })
-                )
-            )
-        )
+        sendPacket(ServerConfigRegistryData(Registries.painting_variant))
+//
+//        sendPacket(
+//            ServerConfigRegistryData(
+//                ResourceLocation.vanilla("painting_variant"), listOf(
+//                    ServerConfigRegistryData.RawEntry(ResourceLocation.vanilla("alban"), CompoundTag().apply {
+//                        putString("asset_id", "minecraft:alban")
+//                        putInt("height", 1)
+//                        putInt("width", 1)
+//                        putString("title", "gg")
+//                        putString("author", "gg")
+//                    })
+//                )
+//            )
+//        )
     }
 
     fun isClientValid(packet: ClientLoginStartPacket): Boolean {
