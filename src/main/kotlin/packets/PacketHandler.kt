@@ -12,14 +12,11 @@ import com.aznos.entity.player.data.Location
 import com.aznos.events.*
 import com.aznos.packets.configuration.out.ServerConfigFinishPacket
 import com.aznos.packets.data.ChunkData
-import com.aznos.packets.data.ChunkSection
 import com.aznos.packets.data.ServerStatusResponse
-import com.aznos.packets.data.buildLightData
 import com.aznos.packets.data.chunk.Chunk
 import com.aznos.packets.data.chunk.ChunkColumn
 import com.aznos.packets.data.chunk.LightData
 import com.aznos.packets.data.chunk.palette.DataPalette
-import com.aznos.packets.data.chunk.palette.Palette
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientChatMessagePacket
@@ -36,7 +33,6 @@ import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
 import com.aznos.palette.Blocks
-import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
@@ -45,7 +41,6 @@ import net.kyori.adventure.text.format.TextColor
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
 import java.util.*
-import kotlin.math.ceil
 
 /**
  * Handles all incoming packets by dispatching them to the appropriate handler methods
@@ -389,7 +384,7 @@ class PacketHandler(
         )
 
         client.sendPacket(
-            ServerChunksBiomesPacket(
+            ServerChunkWithLightPacket(
                 column, lightData
             )
         )
