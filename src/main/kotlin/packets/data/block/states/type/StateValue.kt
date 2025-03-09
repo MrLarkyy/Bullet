@@ -100,4 +100,10 @@ enum class StateValue(
         return parser(input)
     }
 
+    companion object {
+        val NAME_INDEX = entries.associateBy { it.named }
+
+        fun byName(name: String): StateValue? = NAME_INDEX[name]
+    }
+
 }
