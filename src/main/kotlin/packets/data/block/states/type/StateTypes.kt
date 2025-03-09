@@ -30,4 +30,16 @@ object StateTypes {
         idMap[defined.id] = defined
     }
 
+    fun byName(blockString: String): StateType? {
+        val mapped = definedByName(blockString)
+        return mapped?.stateType
+    }
+
+    fun definedByName(blockString: String): StateType.Defined? {
+        return definedByName(ResourceLocation.fromString(blockString))
+    }
+
+    fun definedByName(blockKey: ResourceLocation): StateType.Defined? {
+        return BY_NAME[blockKey.toString()]
+    }
 }
