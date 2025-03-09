@@ -1,8 +1,9 @@
 package com.aznos.registry
 
+import com.aznos.packets.newPacket.ResourceLocation
 import dev.dewy.nbt.tags.collection.CompoundTag
 
-class PaintingVariantTypes : Registry<PaintingVariantType>("minecraft:painting_variant") {
+class PaintingVariantTypes : Registry<PaintingVariantType>(ResourceLocation.vanilla("painting_variant")) {
 
     override fun asCompound(value: PaintingVariantType): CompoundTag {
         val result = CompoundTag()

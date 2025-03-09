@@ -12,37 +12,30 @@ import com.aznos.entity.player.data.Location
 import com.aznos.events.*
 import com.aznos.packets.configuration.out.ServerConfigFinishPacket
 import com.aznos.packets.data.ChunkData
+import com.aznos.packets.data.ChunkSection
 import com.aznos.packets.data.ServerStatusResponse
 import com.aznos.packets.data.buildLightData
+import com.aznos.packets.data.chunk.Chunk
+import com.aznos.packets.data.chunk.ChunkColumn
+import com.aznos.packets.data.chunk.LightData
+import com.aznos.packets.data.chunk.palette.DataPalette
+import com.aznos.packets.data.chunk.palette.Palette
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
 import com.aznos.packets.login.out.ServerLoginSuccessPacket
 import com.aznos.packets.play.`in`.ClientChatMessagePacket
 import com.aznos.packets.play.`in`.ClientKeepAlivePacket
-import com.aznos.packets.play.out.ServerJoinGamePacket
-import com.aznos.packets.play.out.ServerPlayerPositionAndLookPacket
-import com.aznos.packets.status.`in`.ClientStatusPingPacket
-import com.aznos.packets.status.`in`.ClientStatusRequestPacket
-import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.entity.player.data.GameMode
-import com.aznos.entity.player.data.Location
 import com.aznos.packets.play.`in`.movement.ClientPlayerMovement
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionAndRotation
 import com.aznos.packets.play.`in`.movement.ClientPlayerPositionPacket
 import com.aznos.packets.play.`in`.movement.ClientPlayerRotation
-import com.aznos.packets.play.out.ServerDeclareCommandsPacket
-import com.aznos.packets.play.out.entity.ServerSpawnEntityPacket
+import com.aznos.packets.play.out.*
 import com.aznos.packets.play.out.entity.ServerEntityPositionAndRotationPacket
 import com.aznos.packets.play.out.entity.ServerEntityPositionPacket
 import com.aznos.packets.play.out.entity.ServerEntityRotationPacket
-import com.aznos.packets.play.out.*
-import com.aznos.packets.play.out.movement.ServerEntityMovementPacket
-import com.aznos.packets.play.out.movement.ServerEntityPositionAndRotationPacket
-import com.aznos.packets.play.out.movement.ServerEntityPositionPacket
-import com.aznos.packets.play.out.movement.ServerEntityRotationPacket
 import com.aznos.packets.status.`in`.ClientStatusPingPacket
 import com.aznos.packets.status.`in`.ClientStatusRequestPacket
 import com.aznos.packets.status.out.ServerStatusPongPacket
-import com.aznos.registry.Registries
+import com.aznos.palette.Blocks
 import dev.dewy.nbt.api.registry.TagTypeRegistry
 import dev.dewy.nbt.tags.collection.CompoundTag
 import kotlinx.serialization.json.Json
@@ -51,7 +44,8 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import packets.handshake.HandshakePacket
 import packets.status.out.ServerStatusResponsePacket
-import java.util.UUID
+import java.util.*
+import kotlin.math.ceil
 
 /**
  * Handles all incoming packets by dispatching them to the appropriate handler methods
@@ -71,9 +65,9 @@ class PacketHandler(
         val player = client.player
         player.onGround = packet.onGround
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
-                otherPlayer.clientSession.sendPacket(ServerEntityMovementPacket(player.entityID))
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
+                //otherPlayer.clientSession.sendPacket(ServerEntityMovementPacket(player.entityID))
             }
         }
     }
@@ -87,15 +81,15 @@ class PacketHandler(
         player.location = Location(player.location.x, player.location.y, player.location.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
                     ServerEntityRotationPacket(
-                    player.entityID,
-                    player.location.yaw,
-                    player.location.pitch,
-                    player.onGround
-                )
+                        player.entityID,
+                        player.location.yaw,
+                        player.location.pitch,
+                        player.onGround
+                    )
                 )
             }
         }
@@ -121,14 +115,14 @@ class PacketHandler(
         player.location = Location(packet.x, packet.feetY, packet.z, packet.yaw, packet.pitch)
         player.onGround = packet.onGround
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
                     ServerEntityPositionAndRotationPacket(
                         player.entityID,
-                        deltaX,
-                        deltaY,
-                        deltaZ,
+                        packet.x - lastLocation.x,
+                        packet.feetY - lastLocation.y,
+                        packet.z - lastLocation.z,
                         player.location.yaw,
                         player.location.pitch,
                         player.onGround
@@ -158,8 +152,8 @@ class PacketHandler(
         player.location = Location(packet.x, packet.feetY, packet.z, player.location.yaw, player.location.pitch)
         player.onGround = packet.onGround
 
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer != player) {
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer != player) {
                 otherPlayer.clientSession.sendPacket(
                     ServerEntityPositionPacket(
                         player.entityID,
@@ -180,29 +174,35 @@ class PacketHandler(
     fun onChatMessage(packet: ClientChatMessagePacket) {
         val message = packet.message
 
-        if(message.length > 255) {
+        if (message.length > 255) {
             client.disconnect("Message too long")
             return
         }
 
-        if(message.startsWith('/')) {
+        if (message.startsWith('/')) {
             val command = message.substring(1)
             val commandSource = client.player
 
             val result = CommandManager.dispatcher.execute(command, commandSource)
-            if(result != CommandCodes.SUCCESS.id) {
-                when(result) {
+            if (result != CommandCodes.SUCCESS.id) {
+                when (result) {
                     CommandCodes.UNKNOWN.id ->
-                        client.sendMessage(Component.text("Unknown command")
-                            .color(NamedTextColor.RED))
+                        client.sendMessage(
+                            Component.text("Unknown command")
+                                .color(NamedTextColor.RED)
+                        )
 
                     CommandCodes.ILLEGAL_ARGUMENT.id ->
-                        client.sendMessage(Component.text("Invalid command syntax, try typing /help")
-                            .color(NamedTextColor.RED))
+                        client.sendMessage(
+                            Component.text("Invalid command syntax, try typing /help")
+                                .color(NamedTextColor.RED)
+                        )
 
                     CommandCodes.INVALID_PERMISSIONS.id ->
-                        client.sendMessage(Component.text("You don't have permission to use this command")
-                            .color(NamedTextColor.RED))
+                        client.sendMessage(
+                            Component.text("You don't have permission to use this command")
+                                .color(NamedTextColor.RED)
+                        )
                 }
             }
 
@@ -213,7 +213,7 @@ class PacketHandler(
 
         val event = PlayerChatEvent(client.player.username, formattedMessage)
         EventManager.fire(event)
-        if(event.isCancelled) return
+        if (event.isCancelled) return
 
         val textComponent = Component.text()
             .append(Component.text().content("<").color(NamedTextColor.GRAY))
@@ -232,7 +232,7 @@ class PacketHandler(
     fun onKeepAlive(packet: ClientKeepAlivePacket) {
         val event = PlayerHeartbeatEvent(client.player.username)
         EventManager.fire(event)
-        if(event.isCancelled) return
+        if (event.isCancelled) return
 
         client.respondedToKeepAlive = true
     }
@@ -248,12 +248,12 @@ class PacketHandler(
     fun onLoginStart(packet: ClientLoginStartPacket) {
         val preJoinEvent = PlayerPreJoinEvent()
         EventManager.fire(preJoinEvent)
-        if(preJoinEvent.isCancelled) return
+        if (preJoinEvent.isCancelled) return
 
-        if(client.protocol > Bullet.PROTOCOL) {
+        if (client.protocol > Bullet.PROTOCOL) {
             client.disconnect("Please downgrade your Minecraft version to " + Bullet.VERSION)
             return
-        } else if(client.protocol < Bullet.PROTOCOL) {
+        } else if (client.protocol < Bullet.PROTOCOL) {
             client.disconnect("Your client is outdated, please upgrade to Minecraft version " + Bullet.VERSION)
             return
         }
@@ -263,7 +263,7 @@ class PacketHandler(
         client.player.username = packet.username
         client.player.uuid = uuid
         val username = packet.username
-        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) {
+        if (!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) {
             client.disconnect("Invalid username")
             return
         }
@@ -278,19 +278,21 @@ class PacketHandler(
         client.sendPacket(ServerConfigFinishPacket())
         client.state = GameState.PLAY
 
-        client.sendPacket(ServerJoinGamePacket(
-            player.entityID,
-            false,
-            listOf("minecraft:overworld"),
-            0,
-            8,
-            reducedDebugInfo = false,
-            enableRespawnScreen = true,
-            dimensionType = 0,
-            dimensionName = "minecraft:overworld",
-            gameMode = GameMode.SPECTATOR,
-            isFlat = false
-        ))
+        client.sendPacket(
+            ServerJoinGamePacket(
+                player.entityID,
+                false,
+                listOf("minecraft:overworld"),
+                0,
+                8,
+                reducedDebugInfo = false,
+                enableRespawnScreen = true,
+                dimensionType = 0,
+                dimensionName = "minecraft:overworld",
+                gameMode = GameMode.SPECTATOR,
+                isFlat = false
+            )
+        )
 
         client.sendPacket(ServerGameEvent(13, 0f))
         client.sendPacket(ServerSyncPlayerPosition(0, 8.5, 0.0, 8.5, 0.0, 5.0, 0.0, 0f, 90f))
@@ -304,7 +306,7 @@ class PacketHandler(
 
         val joinEvent = PlayerJoinEvent(client.player.username)
         EventManager.fire(joinEvent)
-        if(joinEvent.isCancelled) return
+        if (joinEvent.isCancelled) return
         val chunkDataBytes = ChunkData.buildChunkData()
         val chunkData = ChunkData(
             heightMaps = heightmapTag,
@@ -312,14 +314,85 @@ class PacketHandler(
             blockEntities = emptyList()
         )
 
+
+        fun buildLightData(): LightData {
+            val sections = 24
+            val skyLightMask = BitSet()
+            val blockLightMask = BitSet()
+
+            for (i in 0 until sections) {
+                skyLightMask.set(i)
+                blockLightMask.set(i)
+            }
+
+            val emptySkyLightMask = BitSet()
+            val emptyBlockLightMask = BitSet()
+
+            val skyLightArrays = Array(sections) {
+                ByteArray(2048) { 0xFF.toByte() }
+            }
+
+            val blockLightArrays = Array(sections) {
+                ByteArray(2048) { 0xFF.toByte() }
+            }
+
+            return LightData(
+                blockLightMask,
+                skyLightMask,
+                emptyBlockLightMask,
+                emptySkyLightMask,
+                skyLightArrays,
+                blockLightArrays
+            )
+        }
+
+        fun createNonEmptyChunk(): Chunk {
+            //val bitsPerBlock = 1
+            //val palette = intArrayOf(0, Blocks.STONE.id)
+            val totalBlocks = 16 * 16 * 16
+            //val dataLength = ceil(totalBlocks * bitsPerBlock / 64.0).toInt()
+            //val data = LongArray(dataLength) { 0L }
+
+            val chunkPalette = DataPalette.createForChunk()
+            val biomePalette = DataPalette.createForBiome()
+
+            for (x in 0 until 16) {
+                for (z in 0 until 16) {
+                    for (y in 0 until 16) {
+                        chunkPalette.set(x, y, z, chunkPalette.palette.idToState(Blocks.STONE.id))
+                    }
+                }
+            }
+
+            /*
+            for(i in 0 until totalBlocks) {
+                val localY = i / (16 * 16)
+                val value = if(localY == 0) 1 else 0
+                val bitIndex = i * bitsPerBlock
+                val longIndex = bitIndex / 64
+                val offset = bitIndex % 64
+                chunkPalette.set()
+
+                data[longIndex] = data[longIndex] or (value.toLong() shl offset)
+            }
+             */
+
+            return Chunk(totalBlocks, chunkPalette, biomePalette)
+        }
+
         val lightData = buildLightData()
-        client.sendPacket(ServerLevelChunkWithLightPacket(
-            x = 0,
-            z = 0,
-            chunkData,
-            lightData,
-            TagTypeRegistry()
-        ))
+
+        val chunks = mutableListOf(createNonEmptyChunk())
+
+        val column = ChunkColumn(
+            0, 0, chunks, listOf()
+        )
+
+        client.sendPacket(
+            ServerChunksBiomesPacket(
+                column, lightData
+            )
+        )
 
         Bullet.players.add(player)
         client.sendPlayerSpawnPacket()
@@ -345,7 +418,7 @@ class PacketHandler(
     fun onStatusRequest(packet: ClientStatusRequestPacket) {
         val event = StatusRequestEvent(Bullet.max_players, 0, Bullet.motd)
         EventManager.fire(event)
-        if(event.isCancelled) return
+        if (event.isCancelled) return
 
         val response = ServerStatusResponse(
             ServerStatusResponse.Version(Bullet.VERSION, Bullet.PROTOCOL),
@@ -363,12 +436,12 @@ class PacketHandler(
      */
     @PacketReceiver
     fun onHandshake(packet: HandshakePacket) {
-        client.state = if(packet.state == 2) GameState.LOGIN else GameState.STATUS
+        client.state = if (packet.state == 2) GameState.LOGIN else GameState.STATUS
         client.protocol = packet.protocol ?: -1
 
         val event = HandshakeEvent(client.state, client.protocol)
         EventManager.fire(event)
-        if(event.isCancelled) return
+        if (event.isCancelled) return
     }
 
     /**
@@ -377,10 +450,10 @@ class PacketHandler(
      * @param packet The packet to handle
      */
     fun handle(packet: Packet) {
-        for(method in javaClass.methods) {
-            if(method.isAnnotationPresent(PacketReceiver::class.java)) {
+        for (method in javaClass.methods) {
+            if (method.isAnnotationPresent(PacketReceiver::class.java)) {
                 val params: Array<Class<*>> = method.parameterTypes
-                if(params.size == 1 && params[0] == packet.javaClass) {
+                if (params.size == 1 && params[0] == packet.javaClass) {
                     method.invoke(this, packet)
                 }
             }

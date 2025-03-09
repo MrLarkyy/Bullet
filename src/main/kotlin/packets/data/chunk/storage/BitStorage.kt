@@ -1,8 +1,8 @@
 package com.aznos.packets.data.chunk.storage
 
 class BitStorage(
-    val bitsPerEntry: Int,
-    val size: Int,
+    override val bitsPerEntry: Int,
+    override val size: Int,
     data: LongArray?
 ): BaseStorage() {
 
@@ -11,7 +11,7 @@ class BitStorage(
     val maxValue = (1L shl bitsPerEntry) - 1L
     var valuesPerLong: Int = (64 / bitsPerEntry).toChar().code
 
-    val data: LongArray
+    override val data: LongArray
     val divideMultiply: Long
     val divideAdd: Long
     val divideShift: Int
@@ -60,18 +60,6 @@ class BitStorage(
             70409299, 70409299, 0, 69273666, 69273666, 0, 68174084, 68174084, 0, Int.MIN_VALUE,
             0, 5
         )
-    }
-
-    override fun getData(): LongArray {
-        return data
-    }
-
-    override fun getBitsPerEntry(): Int {
-        return bitsPerEntry
-    }
-
-    override fun getSize(): Int {
-        return size
     }
 
     override fun get(index: Int): Int {

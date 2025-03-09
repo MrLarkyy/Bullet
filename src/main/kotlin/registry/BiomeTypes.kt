@@ -1,11 +1,13 @@
 package com.aznos.registry
 
 import com.aznos.datatypes.putBoolean
+import com.aznos.packets.newPacket.ResourceLocation
 import dev.dewy.nbt.tags.collection.CompoundTag
 
-class BiomeTypes : Registry<BiomeType>("minecraft:worldgen/biome") {
+class BiomeTypes : Registry<BiomeType>(ResourceLocation.vanilla("worldgen/biome")) {
 
-    val plains = register("minecraft:plains", BiomeType(
+    val plains = register(
+        ResourceLocation.vanilla("plains"), BiomeType(
         true,
         0f,
         null,

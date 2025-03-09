@@ -14,16 +14,18 @@ class LightData(
     var skyLightMask: BitSet,
     var emptyBlockLightMask: BitSet,
     var emptySkyLightMask: BitSet,
-    skyLightCount: Int,
-    blocklightCount: Int,
     skyLightArray: Array<ByteArray>,
     blockLightArray: Array<ByteArray>
 ) {
 
-    var skyLightCount: Int = skyLightCount
-        private set
-    var blockLightCount: Int = blocklightCount
-        private set
+    val skyLightCount: Int
+        get() {
+            return skyLightMask.size()
+        }
+    val blockLightCount: Int
+        get() {
+            return blockLightMask.size()
+        }
 
     var skyLightArray: Array<ByteArray> = skyLightArray
         private set
@@ -54,8 +56,6 @@ class LightData(
                 blockLightMask,
                 emptySkyLightMask,
                 emptyBlockLightMask,
-                skyLightCount,
-                blockLightCount,
                 skyLightArray,
                 blockLightArray
             )
@@ -67,10 +67,15 @@ class LightData(
             output.writeLongArray(lightData.emptySkyLightMask.toLongArray())
             output.writeLongArray(lightData.emptyBlockLightMask.toLongArray())
 
-            output.writeVarInt(lightData.skyLightCount)
+            output.writeVarInt(lightData.skyLightArray.size)
             for (i in 0..<lightData.skyLightCount) {
                 output.writeVarInt(lightData.skyLightArray[i].size)
                 output.write(lightData.skyLightArray[i])
+            }
+            output.writeVarInt(lightData.blockLightArray.size)
+            for (i in 0..<lightData.blockLightCount) {
+                output.writeVarInt(lightData.blockLightArray[i].size)
+                output.write(lightData.blockLightArray[i])
             }
         }
     }

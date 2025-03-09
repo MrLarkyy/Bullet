@@ -54,7 +54,7 @@ class DataPalette(
                 return
             }
 
-            out.writeByte(palette.storage?.getBitsPerEntry() ?: 0)
+            out.writeByte(palette.storage?.bitsPerEntry ?: 0)
 
             if (palette.palette !is GlobalPalette) {
                 val paletteLength = palette.palette.size()
@@ -64,7 +64,7 @@ class DataPalette(
                 }
             }
 
-            val data = palette.storage?.getData() ?: LongArray(0)
+            val data = palette.storage?.data ?: LongArray(0)
             //out.writeVarInt(data.size)
             out.writeLongArray(data)
         }
@@ -134,7 +134,7 @@ class DataPalette(
         val oldData = this.storage
 
         val bitsPerEntry: Int =
-            sanitizeBitsPerEntry(if (oldPalette is SingletonPalette) 1 else oldData!!.getBitsPerEntry() + 1)
+            sanitizeBitsPerEntry(if (oldPalette is SingletonPalette) 1 else oldData!!.bitsPerEntry + 1)
         this.palette = createPalette(bitsPerEntry, paletteType)
         val storage = BitStorage(bitsPerEntry, paletteType.storageSize)
         this.storage = storage

@@ -2,10 +2,10 @@ package com.aznos.packets.data.chunk.storage
 
 abstract class BaseStorage {
 
-    abstract fun getData(): LongArray
-    abstract fun getBitsPerEntry(): Int
+    abstract val data: LongArray
+    abstract val bitsPerEntry: Int
 
-    abstract fun getSize(): Int
+    abstract val size: Int
 
     abstract fun get(index: Int): Int
 

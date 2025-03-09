@@ -31,7 +31,7 @@ object PacketRegistry {
     fun clientPacketHandler(id: Int, handlerKey: ResourceLocation): ClientPacket.Handler<*>? =
         clientPackets[id]?.handlers?.get(handlerKey)
 
-    fun KeyedRegistry<ResourceLocation, Pair<Class<out ClientPacket>, MutableMap<ResourceLocation, ClientPacket.Handler<*>>>>.registerHandler(
+    fun KeyedRegistry<ResourceLocation, Pair<Class<out ClientPacket<*>>, MutableMap<ResourceLocation, ClientPacket.Handler<*>>>>.registerHandler(
         packetKey: ResourceLocation,
         handlerKey: ResourceLocation,
         handler: ClientPacket.Handler<*>
@@ -40,7 +40,7 @@ object PacketRegistry {
         handlers.second[handlerKey] = handler
     }
 
-    class ClientPacketEntry<T : ClientPacket>(
+    class ClientPacketEntry<T : ClientPacket<T>>(
         val clazz: Class<T>,
         val handlers: MutableMap<ResourceLocation, ClientPacket.Handler<T>>
     )

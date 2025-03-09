@@ -12,14 +12,16 @@ import com.aznos.packets.configuration.out.ServerConfigRegistryData
 import com.aznos.packets.login.out.ServerLoginDisconnectPacket
 import com.aznos.packets.data.PlayerInfo
 import com.aznos.packets.login.`in`.ClientLoginStartPacket
-import com.aznos.packets.login.out.ServerLoginDisconnectPacket
+import com.aznos.packets.newPacket.ResourceLocation
 import com.aznos.packets.newPacket.ServerPacket
 import com.aznos.packets.play.out.*
 import com.aznos.packets.play.out.chat.ServerSystemChatMessagePacket
 import com.aznos.packets.play.out.entity.ServerSpawnEntityPacket
 import com.aznos.packets.status.LegacyPingRequest
 import com.aznos.registry.Registries
+import com.aznos.registry.Registry
 import dev.dewy.nbt.tags.collection.CompoundTag
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import java.io.BufferedInputStream
 import java.io.DataInputStream
@@ -66,15 +68,15 @@ class ClientSession(
             val firstByte = input.readUnsignedByte()
             input.reset()
 
-            if(firstByte == 0xFE) {
+            if (firstByte == 0xFE) {
                 val available = input.available()
-                if(available == 0) { //Pre 1.4
+                if (available == 0) { //Pre 1.4
                     LegacyPingRequest.handleBetaPing(out, this)
                     return
                 } else {
                     input.readByte()
                     val secondByte = input.readByte().toInt()
-                    if(secondByte == 0x01) { //1.6
+                    if (secondByte == 0x01) { //1.6
                         LegacyPingRequest.handle16Ping(out, this)
                         return
                     } else { //Unknown
@@ -83,8 +85,8 @@ class ClientSession(
                     }
                 }
             }
-        } catch(e: IOException) {
-            disconnect("Invalid packet")
+        } catch (e: IOException) {
+            disconnect(Component.text("Invalid packet"))
             return
         }
 
@@ -108,9 +110,9 @@ class ClientSession(
                 }
             }
         } catch (e: EOFException) {
-            disconnect("Client closed the connection")
+            disconnect(Component.text("Client closed the connection"))
         } catch (e: SocketException) {
-            disconnect("Connection lost")
+            disconnect(Component.text("Connection lost"))
         }
     }
 
@@ -118,13 +120,13 @@ class ClientSession(
         keepAliveTimer = Timer(true).apply {
             scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
-                    if(isClosed()) {
+                    if (isClosed()) {
                         cancel()
                         return
                     }
 
-                    if(!respondedToKeepAlive) {
-                        disconnect("Timed out")
+                    if (!respondedToKeepAlive) {
+                        disconnect(Component.text("Timed out"))
                         cancel()
                         return
                     }
@@ -144,22 +146,26 @@ class ClientSession(
         sendPacket(ServerSystemChatMessagePacket(message, false))
     }
 
+    fun disconnect(message: String) {
+        disconnect(Component.text(message))
+    }
+
     /**
      * Disconnects the client that is in the play state with the server play disconnect packet
      *
      * @param message The message to be sent to the client
      */
-    fun disconnect(message: String) {
-        if(state == GameState.PLAY) {
+    fun disconnect(message: Component) {
+        if (state == GameState.PLAY) {
             sendPacket(ServerPlayDisconnectPacket(message))
-        } else if(state == GameState.LOGIN) {
+        } else if (state == GameState.LOGIN) {
             sendPacket(ServerLoginDisconnectPacket(message))
         }
 
         keepAliveTimer?.cancel()
         keepAliveTimer = null
 
-        for(session in Bullet.players) {
+        for (session in Bullet.players) {
             session.clientSession.sendPacket(
                 ServerPlayerInfoUpdatePacket(
                     4,
@@ -186,30 +192,32 @@ class ClientSession(
         sendPacket(ServerConfigRegistryData(Registries.damage_type))
 
         sendPacket(
-            ServerConfigRegistryData("minecraft:painting_variant", listOf(
-                ServerConfigRegistryData.RawEntry("minecraft:alban", CompoundTag().apply {
-                    putString("asset_id", "minecraft:alban")
-                    putInt("height", 1)
-                    putInt("width", 1)
-                    putString("title", "gg")
-                    putString("author", "gg")
-                })
-            ))
+            ServerConfigRegistryData(
+                ResourceLocation.vanilla("painting_variant"), listOf(
+                    ServerConfigRegistryData.RawEntry(ResourceLocation.vanilla("alban"), CompoundTag().apply {
+                        putString("asset_id", "minecraft:alban")
+                        putInt("height", 1)
+                        putInt("width", 1)
+                        putString("title", "gg")
+                        putString("author", "gg")
+                    })
+                )
+            )
         )
     }
 
     fun isClientValid(packet: ClientLoginStartPacket): Boolean {
-        if(protocol > Bullet.PROTOCOL) {
-            disconnect("Please downgrade your minecraft version to " + Bullet.VERSION)
+        if (protocol > Bullet.PROTOCOL) {
+            disconnect(Component.text("Please downgrade your minecraft version to " + Bullet.VERSION))
             return false
-        } else if(protocol < Bullet.PROTOCOL) {
-            disconnect("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION)
+        } else if (protocol < Bullet.PROTOCOL) {
+            disconnect(Component.text("Your client is outdated, please upgrade to minecraft version " + Bullet.VERSION))
             return false
         }
 
         val username = packet.username
-        if(!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
-            disconnect("Invalid username")
+        if (!username.matches(Regex("^[a-zA-Z0-9]{3,16}$"))) { // Alphanumeric and 3-16 characters
+            disconnect(Component.text("Invalid username"))
             return false
         }
 
@@ -222,8 +230,8 @@ class ClientSession(
      * @param packet The packet to be sent
      */
     fun sendPacket(serverPacket: ServerPacket) {
-        if(isClosed()) {
-            Bullet.logger.warn("Tried to send a packet to a closed connection")
+        if (isClosed()) {
+            Bullet.logger.warning("Tried to send a packet to a closed connection")
             return
         }
 
@@ -232,8 +240,8 @@ class ClientSession(
     }
 
     fun sendPlayerSpawnPacket() {
-        for(otherPlayer in Bullet.players) {
-            if(otherPlayer.clientSession != this) {
+        for (otherPlayer in Bullet.players) {
+            if (otherPlayer.clientSession != this) {
                 otherPlayer.clientSession.sendPacket(
                     ServerPlayerInfoUpdatePacket(
                         0,
@@ -253,11 +261,16 @@ class ClientSession(
                     ServerSpawnEntityPacket(
                         player.entityID,
                         player.uuid,
+                        147,
                         player.location.x,
                         player.location.y,
                         player.location.z,
                         player.location.yaw,
-                        player.location.pitch
+                        player.location.pitch,
+                        player.location.yaw,
+                        0,
+                        0,
+                        0, 0
                     )
                 )
 
@@ -280,11 +293,16 @@ class ClientSession(
                     ServerSpawnEntityPacket(
                         otherPlayer.entityID,
                         otherPlayer.uuid,
+                        147,
                         otherPlayer.location.x,
                         otherPlayer.location.y,
                         otherPlayer.location.z,
                         otherPlayer.location.yaw,
-                        otherPlayer.location.pitch
+                        otherPlayer.location.pitch,
+                        otherPlayer.location.yaw,
+                        0,
+                        0,
+                        0, 0
                     )
                 )
             }
