@@ -52,8 +52,8 @@ object PacketRegistry {
 
         //PLAY
         val playPackets = ConcurrentHashMap<Int, Class<out Packet>>().apply {
-            this[0x03] = ClientChatMessagePacket::class.java
-            this[0x10] = ClientKeepAlivePacket::class.java
+            //this[0x03] = ClientChatMessagePacket::class.java
+            //this[0x10] = ClientKeepAlivePacket::class.java
             this[0x12] = ClientPlayerPositionPacket::class.java
             this[0x13] = ClientPlayerPositionAndRotation::class.java
             this[0x14] = ClientPlayerRotation::class.java

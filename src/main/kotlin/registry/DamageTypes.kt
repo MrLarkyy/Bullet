@@ -1,17 +1,18 @@
 package com.aznos.registry
 
+import com.aznos.packets.newPacket.ResourceLocation
 import com.google.gson.JsonParser
 import dev.dewy.nbt.tags.collection.CompoundTag
 import java.io.InputStreamReader
 
 // We are doing a shortcut to create these, TODO: do them correctly later
-class DamageTypes : Registry<DamageType>("minecraft:damage_type") {
+class DamageTypes : Registry<DamageType>(ResourceLocation.vanilla("damage_type")) {
 
     init {
         javaClass.getResourceAsStream("/damageTypes.json")?.let {
             for (entry in JsonParser.parseReader(InputStreamReader(it)).asJsonArray) {
                 val value = DamageType(entry.asString)
-                register(value.messageId, value)
+                register(ResourceLocation.fromString(value.messageId), value)
             }
         }
     }

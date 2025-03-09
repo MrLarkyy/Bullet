@@ -53,7 +53,7 @@ object CommandManager {
      * @param dispatcher The command dispatcher
      * @return A pair of the command graph and the index of the root node
      */
-    fun buildCommandGraphFromDispatcher(dispatcher: CommandDispatcher<*>): Pair<List<GraphCommandNode>, Int> {
+    fun buildCommandGraphFromDispatcher(dispatcher: CommandDispatcher<*>): Pair<MutableList<GraphCommandNode>, Int> {
         val visited = mutableSetOf<CommandNode<*>>()
         val ordering = mutableListOf<CommandNode<*>>()
 
@@ -100,7 +100,7 @@ object CommandManager {
                 properties = propertiesValue,
                 suggestionsType = null
             )
-        }
+        }.toMutableList()
 
         val rootIndex = indexMap[dispatcher.root] ?: 0
         return Pair(graphNodes, rootIndex)

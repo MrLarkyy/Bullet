@@ -1,7 +1,9 @@
 package com.aznos.packets.play.out
 
 import com.aznos.datatypes.VarInt.writeVarInt
-import com.aznos.packets.Packet
+import com.aznos.packets.newPacket.Keyed
+import com.aznos.packets.newPacket.ResourceLocation
+import com.aznos.packets.newPacket.ServerPacket
 
 /**
  * Teleports the client, e.g. during login or throwing an ender pearl or /teleport
@@ -13,25 +15,28 @@ import com.aznos.packets.Packet
  * @param pitch The player pitch (up-dpwn)
  */
 class ServerSyncPlayerPosition(
-    id: Int,
-    x: Double, y: Double, z: Double,
-    vx: Double, vy: Double, vz: Double,
-    yaw: Float, pitch: Float
-) : Packet(0x42) {
-    init {
-        wrapper.writeVarInt(id)
+    var id: Int,
+    var x: Double, var y: Double,var z: Double,
+    var vx: Double, var vy: Double, var vz: Double,
+    var yaw: Float, var pitch: Float
+) : ServerPacket(key) {
 
-        wrapper.writeDouble(x)
-        wrapper.writeDouble(y)
-        wrapper.writeDouble(z)
+    companion object {
+        val key = Keyed(0x42, ResourceLocation.vanilla("play.out.player_position"))
+    }
 
-        wrapper.writeDouble(vx)
-        wrapper.writeDouble(vy)
-        wrapper.writeDouble(vz)
-
-        wrapper.writeFloat(yaw)
-        wrapper.writeFloat(pitch)
-
-        wrapper.writeInt(0)
+    override fun retrieveData(): ByteArray {
+        return writeData {
+            writeVarInt(id)
+            writeDouble(x)
+            writeDouble(y)
+            writeDouble(z)
+            writeDouble(vx)
+            writeDouble(vy)
+            writeDouble(vz)
+            writeFloat(yaw)
+            writeFloat(pitch)
+            writeInt(0)
+        }
     }
 }

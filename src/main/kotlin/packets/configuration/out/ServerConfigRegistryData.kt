@@ -1,39 +1,46 @@
 package com.aznos.packets.configuration.out
 
-import com.aznos.datatypes.NBTType.writeNbtCompound
+import com.aznos.datatypes.CollectionType.writeCollection
+import com.aznos.datatypes.OptionalType.writeOptional
 import com.aznos.datatypes.StringType.writeString
-import com.aznos.datatypes.VarInt.writeVarInt
-import com.aznos.packets.Packet
+import com.aznos.packets.newPacket.Keyed
+import com.aznos.packets.newPacket.ResourceLocation
+import com.aznos.packets.newPacket.ServerPacket
 import com.aznos.registry.Registry
+import dev.dewy.nbt.Nbt
 import dev.dewy.nbt.tags.collection.CompoundTag
 
 /**
  * This packet is sent when you want to apply registries to the client
-*/
-class ServerConfigRegistryData private constructor(
-    registry: Registry<*>? = null,
-    key: String? = null,
-    entries: List<RawEntry>?
-) : Packet(0x07) {
+ */
+class ServerConfigRegistryData(
+    var registryKey: ResourceLocation,
+    var entries: List<RawEntry>
+) : ServerPacket(key) {
 
-    constructor(registry: Registry<*>): this(registry, null, null)
-    constructor(key: String, entries: List<RawEntry>): this(null, key, entries)
+    constructor(registry: Registry<*>): this(registry.key, registry.getCompoundMap().map { RawEntry(it.key, it.value) })
 
-    init {
-        if (registry != null) {
-            wrapper.write(registry.cachedNetworkPacket
-                ?: error("Cannot serialize unlocked registry"))
-        } else {
-            wrapper.writeString(key!!)
-            wrapper.writeVarInt(entries!!.size)
+    companion object {
+        val key = Keyed(0x07, ResourceLocation.vanilla("configuration.out.registry_data"))
+    }
 
-            for (entry in entries) {
-                wrapper.writeString(entry.key)
-                wrapper.writeBoolean(true)
-                wrapper.writeNbtCompound(entry.value)
+    data class RawEntry(val id: ResourceLocation, val value: CompoundTag?) {
+        constructor(nbt: CompoundTag) : this(
+            ResourceLocation.fromString(nbt.getString("name").value),
+            nbt.getCompound("element")
+        )
+
+    }
+
+    override fun retrieveData(): ByteArray {
+        return writeData {
+            writeString(registryKey.toString())
+            writeCollection(entries) { os, entry ->
+                os.writeString(entry.id.toString())
+                os.writeOptional(entry.value) { os1, value ->
+                    Nbt().toStream(value, os1)
+                }
             }
         }
     }
-
-    data class RawEntry(val key: String, val value: CompoundTag)
 }

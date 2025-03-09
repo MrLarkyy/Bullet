@@ -1,10 +1,10 @@
 package com.aznos.packets.play.out
 
+import com.aznos.commands.data.GraphCommandNode
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.VarInt.writeVarInt
-import com.aznos.packets.Packet
-import com.aznos.commands.data.GraphCommandNode
-import com.aznos.packets.ServerPacket
+import com.aznos.packets.newPacket.Keyed
+import com.aznos.packets.newPacket.ResourceLocation
 import java.io.IOException
 
 /**
@@ -17,46 +17,53 @@ import java.io.IOException
  * @param rootIndex The index of the root node in the command graph
  */
 class ServerDeclareCommandsPacket(
-    nodes: List<GraphCommandNode>,
-    rootIndex: Int
-) : ServerPacket(0x10) {
-    init {
-        wrapper.writeVarInt(nodes.size)
-        for(node in nodes) {
-            wrapper.writeByte(node.flags.toInt())
-            wrapper.writeVarInt(node.children.size)
+    var nodes: MutableList<GraphCommandNode>,
+    var rootIndex: Int
+) : com.aznos.packets.newPacket.ServerPacket(key) {
 
-            for(child in node.children) {
-                wrapper.writeVarInt(child)
-            }
+    companion object {
+        val key = Keyed(0x11, ResourceLocation.vanilla("play.out.commands"))
+    }
 
-            if(node.flags.toInt() and 0x08 != 0) {
-                if(node.redirect == null) {
-                    throw IOException("Redirect flag set but no redirect node index provided")
-                }
-                wrapper.writeVarInt(node.redirect)
-            }
+    override fun retrieveData(): ByteArray {
+        return writeData {
+            writeVarInt(nodes.size)
+            for(node in nodes) {
+                writeByte(node.flags.toInt())
+                writeVarInt(node.children.size)
 
-            if(node.name != null) {
-                wrapper.writeString(node.name)
-            }
-
-            if(node.parser != null) {
-                wrapper.writeString(node.parser)
-                if(node.properties is Int) {
-                    wrapper.writeVarInt(node.properties)
-                }
-            }
-
-            if(node.flags.toInt() and 0x10 != 0) {
-                if(node.suggestionsType == null) {
-                    throw IOException("Suggestions flag set but no suggestions type provided")
+                for(child in node.children) {
+                    writeVarInt(child)
                 }
 
-                wrapper.writeString(node.suggestionsType)
+                if(node.flags.toInt() and 0x08 != 0) {
+                    if(node.redirect == null) {
+                        throw IOException("Redirect flag set but no redirect node index provided")
+                    }
+                    writeVarInt(node.redirect)
+                }
+
+                if(node.name != null) {
+                    writeString(node.name)
+                }
+
+                if(node.parser != null) {
+                    writeString(node.parser)
+                    if(node.properties is Int) {
+                        writeVarInt(node.properties)
+                    }
+                }
+
+                if(node.flags.toInt() and 0x10 != 0) {
+                    if(node.suggestionsType == null) {
+                        throw IOException("Suggestions flag set but no suggestions type provided")
+                    }
+
+                    writeString(node.suggestionsType)
+                }
             }
+
+            writeVarInt(rootIndex)
         }
-
-        wrapper.writeVarInt(rootIndex)
     }
 }

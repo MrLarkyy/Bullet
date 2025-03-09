@@ -1,11 +1,12 @@
 package com.aznos.registry
 
 import com.aznos.datatypes.putBoolean
+import com.aznos.packets.newPacket.ResourceLocation
 import dev.dewy.nbt.tags.collection.CompoundTag
 
-class DimensionTypes : Registry<DimensionType>("minecraft:dimension_type") {
+class DimensionTypes : Registry<DimensionType>(ResourceLocation.vanilla("dimension_type")) {
 
-    val overworld = register("minecraft:overworld", DimensionType(
+    val overworld = register(ResourceLocation.vanilla("overworld"), DimensionType(
         true,
         true,
         -64,
@@ -15,7 +16,7 @@ class DimensionTypes : Registry<DimensionType>("minecraft:dimension_type") {
         false
     ))
 
-    val nether = register("minecraft:the_nether", DimensionType(
+    val nether = register(ResourceLocation.vanilla("the_nether"), DimensionType(
         false,
         false,
         0,
@@ -25,7 +26,7 @@ class DimensionTypes : Registry<DimensionType>("minecraft:dimension_type") {
         true
     ))
 
-    val end = register("minecraft:the_end", DimensionType(
+    val end = register(ResourceLocation.vanilla("the_end"), DimensionType(
         false,
         false,
         0,

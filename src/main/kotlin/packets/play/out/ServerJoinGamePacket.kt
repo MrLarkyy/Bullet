@@ -3,7 +3,9 @@ package com.aznos.packets.play.out
 import com.aznos.datatypes.StringType.writeString
 import com.aznos.datatypes.VarInt.writeVarInt
 import com.aznos.entity.player.data.GameMode
-import com.aznos.packets.Packet
+import com.aznos.packets.newPacket.Keyed
+import com.aznos.packets.newPacket.ResourceLocation
+import com.aznos.packets.newPacket.ServerPacket
 
 /**
  * Packet sent to the client that sends all the information needed to join the game
@@ -21,41 +23,48 @@ import com.aznos.packets.Packet
  * @param isFlat Whether the world is flat or not
  */
 class ServerJoinGamePacket(
-    entityID: Int,
-    hardcore: Boolean,
-    dimensionNames: List<String>,
-    viewDistance: Int,
-    simulationDistance: Int,
-    reducedDebugInfo: Boolean,
-    enableRespawnScreen: Boolean,
-    dimensionType: Int,
-    dimensionName: String,
-    gameMode: GameMode,
-    isFlat: Boolean,
-) : Packet(0x2C) {
-    init {
-        wrapper.writeInt(entityID)
-        wrapper.writeBoolean(hardcore)
+    var entityID: Int,
+    var hardcore: Boolean,
+    var dimensionNames: List<String>,
+    var viewDistance: Int,
+    var simulationDistance: Int,
+    var reducedDebugInfo: Boolean,
+    var enableRespawnScreen: Boolean,
+    var dimensionType: Int,
+    var dimensionName: String,
+    var gameMode: GameMode,
+    var isFlat: Boolean,
+) : ServerPacket(key) {
 
-        wrapper.writeVarInt(dimensionNames.size)
-        dimensionNames.forEach { wrapper.writeString(it) }
+    companion object {
+        val key = Keyed(0x2C, ResourceLocation.vanilla("play.out.login"))
+    }
 
-        wrapper.writeVarInt(0) // Max Players (Unused by the client)
-        wrapper.writeVarInt(viewDistance)
-        wrapper.writeVarInt(simulationDistance)
-        wrapper.writeBoolean(reducedDebugInfo)
-        wrapper.writeBoolean(enableRespawnScreen)
-        wrapper.writeBoolean(false) // Do limited crafting (Unused by client according to wiki)
-        wrapper.writeVarInt(dimensionType)
-        wrapper.writeString(dimensionName)
-        wrapper.writeLong(0L) // Hashed seed
-        wrapper.writeByte(gameMode.id)
-        wrapper.writeByte(-1) // Previous player gamemode
-        wrapper.writeBoolean(isFlat)
-        wrapper.writeBoolean(false)
-        wrapper.writeBoolean(false)
-        wrapper.writeVarInt(0)
-        wrapper.writeVarInt(0)
-        wrapper.writeBoolean(false)
+    override fun retrieveData(): ByteArray {
+        return writeData {
+            writeInt(entityID)
+            writeBoolean(hardcore)
+
+            writeVarInt(dimensionNames.size)
+            dimensionNames.forEach { writeString(it) }
+
+            writeVarInt(0) // Max Players (Unused by the client)
+            writeVarInt(viewDistance)
+            writeVarInt(simulationDistance)
+            writeBoolean(reducedDebugInfo)
+            writeBoolean(enableRespawnScreen)
+            writeBoolean(false) // Do limited crafting (Unused by client according to wiki)
+            writeVarInt(dimensionType)
+            writeString(dimensionName)
+            writeLong(0L) // Hashed seed
+            writeByte(gameMode.id)
+            writeByte(-1) // Previous player gamemode
+            writeBoolean(isFlat)
+            writeBoolean(false)
+            writeBoolean(false)
+            writeVarInt(0)
+            writeVarInt(0)
+            writeBoolean(false)
+        }
     }
 }

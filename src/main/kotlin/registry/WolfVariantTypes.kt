@@ -1,58 +1,68 @@
 package com.aznos.registry
 
+import com.aznos.packets.newPacket.ResourceLocation
 import dev.dewy.nbt.tags.collection.CompoundTag
 
-class WolfVariantTypes : Registry<WolfVariantType>("minecraft:wolf_variant") {
+class WolfVariantTypes : Registry<WolfVariantType>(ResourceLocation.vanilla("wolf_variant")) {
 
-    val ashen = register("minecraft:ashen", WolfVariantType(
+    val ashen = register(
+        ResourceLocation.vanilla("ashen"), WolfVariantType(
         "minecraft:entity/wolf/wolf_ashen",
         "minecraft:entity/wolf/wolf_ashen_tame",
         "minecraft:entity/wolf/wolf_ashen_angry"
     ))
 
-    val black = register("minecraft:black", WolfVariantType(
+    val black = register(
+        ResourceLocation.vanilla("black"), WolfVariantType(
         "minecraft:entity/wolf/wolf_black",
         "minecraft:entity/wolf/wolf_black_tame",
         "minecraft:entity/wolf/wolf_black_angry"
     ))
 
-    val chestnut = register("minecraft:chestnut", WolfVariantType(
+    val chestnut = register(
+        ResourceLocation.vanilla("chestnut"), WolfVariantType(
         "minecraft:entity/wolf/wolf_chestnut",
         "minecraft:entity/wolf/wolf_chestnut_tame",
         "minecraft:entity/wolf/wolf_chestnut_angry"
     ))
 
-    val pale = register("minecraft:pale", WolfVariantType(
+    val pale = register(
+        ResourceLocation.vanilla("pale"), WolfVariantType(
         "minecraft:entity/wolf/wolf_pale",
         "minecraft:entity/wolf/wolf_pale_tame",
         "minecraft:entity/wolf/wolf_pale_angry"
     ))
 
-    val rusty = register("minecraft:rusty", WolfVariantType(
+    val rusty = register(
+        ResourceLocation.vanilla("rusty"), WolfVariantType(
         "minecraft:entity/wolf/wolf_rusty",
         "minecraft:entity/wolf/wolf_rusty_tame",
         "minecraft:entity/wolf/wolf_rusty_angry"
     ))
 
-    val snowy = register("minecraft:snowy", WolfVariantType(
+    val snowy = register(
+        ResourceLocation.vanilla("snowy"), WolfVariantType(
         "minecraft:entity/wolf/wolf_snowy",
         "minecraft:entity/wolf/wolf_snowy_tame",
         "minecraft:entity/wolf/wolf_snowy_angry"
     ))
 
-    val spotted = register("minecraft:spotted", WolfVariantType(
+    val spotted = register(
+        ResourceLocation.vanilla("spotted"), WolfVariantType(
         "minecraft:entity/wolf/wolf_spotted",
         "minecraft:entity/wolf/wolf_spotted_tame",
         "minecraft:entity/wolf/wolf_spotted_angry"
     ))
 
-    val striped = register("minecraft:striped", WolfVariantType(
+    val striped = register(
+        ResourceLocation.vanilla("striped"), WolfVariantType(
         "minecraft:entity/wolf/wolf_striped",
         "minecraft:entity/wolf/wolf_striped_tame",
         "minecraft:entity/wolf/wolf_striped_angry"
     ))
 
-    val woods = register("minecraft:woods", WolfVariantType(
+    val woods = register(
+        ResourceLocation.vanilla("woods"), WolfVariantType(
         "minecraft:entity/wolf/wolf_woods",
         "minecraft:entity/wolf/wolf_woods_tame",
         "minecraft:entity/wolf/wolf_woods_angry"
