@@ -1,4 +1,4 @@
-package util
+package com.aznos
 
 import com.google.gson.JsonElement
 
@@ -13,7 +13,11 @@ object AssetFetcher {
         assert(folder.isDirectory)
 
         val result = mutableMapOf<String, JsonElement>()
-        for (file in folder.listFiles()!!.filter { it.isFile && !it.startsWith("_") && it.endsWith(".json") }) {
+        for (file in folder.listFiles()!!) {
+            if (!file.isFile) continue
+            if (file.name.startsWith("_")) continue
+            if (file.extension != "json") continue
+
             result[file.nameWithoutExtension] = Main.gson.fromJson(file.readText(), JsonElement::class.java)
         }
 

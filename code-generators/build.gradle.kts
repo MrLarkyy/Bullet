@@ -15,7 +15,7 @@ dependencies {
 }
 
 application {
-    mainClass = "MainKt"
+    mainClass = "com.aznos.MainKt"
 }
 
 kotlin {

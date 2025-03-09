@@ -1,17 +1,12 @@
-package util
+package com.aznos
 
 import com.google.gson.JsonObject
 
 object DataFetcher {
 
-    private val dataKeys: JsonObject = Main.gson.fromJson(Main.dataFolder.resolve("data/dataPaths.json").readText(), JsonObject::class.java).getAsJsonObject("pc").getAsJsonObject(Main.VERSION)
+    private val dataKeys: JsonObject = Main.gson.fromJson(Main.dataFolder.resolve("data/dataPaths.json").readText(), JsonObject::class.java).getAsJsonObject("pc").getAsJsonObject(
+        Main.VERSION)
     private val cache = mutableMapOf<String, JsonObject>()
-
-    init {
-        println(Main.gson.toJson(dataKeys))
-    }
-
-    fun initialize() {}
 
     fun getData(key: String): JsonObject {
         if (cache.containsKey(key)) return cache[key]!!
